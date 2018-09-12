@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stuhomework.dao.StuHomeworkDao">
+	<resultMap id="scoreMap" type="java.util.Map">
+		<result property="maxScore" column="max_score" />
+		<result property="avgScore" column="avg_score" />
+		<result property="minScore" column="min_score" />
+		<result property="fullMark" column="full_mark" />
+		<result property="avgTimeKeep" column="avg_time_keep" />
+		<result property="rank" column="rank" />
+		<result property="scoreRate" column="score_rate" />
+		<result property="stuId" column="stu_id" />
+		<result property="actualScore" column="actual_score" />
+		<result property="timeKeep" column="time_keep" />
+	</resultMap>
+
+	<select id="queryList4StuAndStuTopic" resultType="com.lhh.modules.stuhomework.entity.StuHomeworkEntity">
+		select stu.* from stu_homework stu
+		left join stu_topic stop
+		on stu.homework_id = stop.homework_id
+		and stu.class_id = stop.class_id
+		and stu.stu_id = stop.stu_id
+		<where>
+			<if test="stuState !=null and stuState !=''">
+				and stu_state = #{stuState}
+			</if>
+			<if test="stuMacroStatus !=null and stuMacroStatus !=''">
+				and stu_macro_status = #{stuMacroStatus}
+			</if>
+			<if test="homeworkId !=null and homeworkId !=''">
+				and homework_id = #{homeworkId}
+			</if>
+			<if test="classId !=null and classId !=''">
+				and class_id = #{classId}
+			</if>
+			<if test="stuId !=null and stuId !=''">
+				and stu_id = #{stuId}
+			</if>
+			<if test="wrongStu !=null and wrongStu !=''">
+				and stop.s_score != stop.actual_score
+			</if>
+		</where>
+
+	</select>
+	<!-- 口语评测平均分 最高分 最低分 平均用时 查询 -->
+	<select id="queryOralReviewsScore" resultMap="scoreMap">
+		select max(sum_score) as max_score,avg(sum_score) as avg_score,min(sum_score) as min_score,100 as full_mark	, avg(time_keep) avg_time_keep from(
+		select sum(actual_score) as sum_score, time_keep
+		from stu_homework as sh
+		where
+			sh.stu_macro_status = 3
+			<if test="homeworkId !=null and homeworkId !=''">
+				and sh.homework_id =#{homeworkId}
+			</if>
+			<if test="classId !=null and classId !=''">
+				and sh.class_id =#{classId}
+			</if>
+		group by stu_id
+		) as tmp
+
+	</select>
+	<!-- 口语评测  得分率  得分 时长, 排名 查询 -->
+	<select id="queryOralReviewsRank" resultMap="scoreMap">
+		select  @r:=@r+1 as rank, tmp.* from (
+			select sum(actual_score)/100 as score_rate, stu_id, actual_score,time_keep from stu_homework as sh,(select @r:=0) b
+			where
+				stu_macro_status =3
+				<if test="homeworkId !=null and homeworkId !=''">
+					and homework_id =#{homeworkId}
+				</if>
+				<if test="classId !=null and classId !=''">
+					and class_id =#{classId}
+				</if>
+			group by stu_id
+			order by actual_score desc
+		) as tmp
+	</select>
+
+</mapper>

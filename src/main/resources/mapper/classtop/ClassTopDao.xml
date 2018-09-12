@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classtop.dao.ClassTopDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.classtop.entity.ClassTopEntity" id="classTopMap">
+		<result property="id" column="id"/>
+		<result property="alreadyOperateds" column="already_operateds"/>
+		<result property="authId" column="auth_id"/>
+		<result property="authType" column="auth_type"/>
+		<result property="content" column="content"/>
+		<result property="createTime" column="create_time"/>
+		<result property="finishTime" column="finish_time"/>
+		<result property="lables" column="lables"/>
+		<result property="notOperateds" column="not_operateds"/>
+		<result property="overt" column="overt"/>
+		<result property="praises" column="praises"/>
+		<result property="taskId" column="task_id"/>
+		<result property="title" column="title"/>
+		<result property="type" column="type"/>
+		<result property="collectionNum" column="collection_num"/>
+		<result property="tinyType" column="tiny_type"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.classtop.entity.ClassTopEntity">
+		select * from class_top where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.classtop.entity.ClassTopEntity">
+		select * from class_top
+		<where>
+			<if test="authType !=null and authType != ''">
+				AND class_top.auth_type = #{authType}
+			</if>
+			<if test="authId !=null and authId != ''">
+				AND auth_id = #{authId}
+			</if>
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from class_top
+		<where>
+			<if test="authType !=null and authType != ''">
+				AND class_top.auth_type = #{authType}
+			</if>
+			<if test="authId !=null and authId != ''">
+				AND auth_id = #{authId}
+			</if>
+		</where>
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.classtop.entity.ClassTopEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into class_top
+		(
+			`already_operateds`, 
+			`auth_id`, 
+			`auth_type`, 
+			`content`, 
+			`create_time`, 
+			`finish_time`, 
+			`lables`, 
+			`not_operateds`, 
+			`overt`, 
+			`praises`, 
+			`task_id`, 
+			`title`, 
+			`type`,
+			`collection_num`,
+			`tiny_type`
+		)
+		values
+		(
+			#{alreadyOperateds}, 
+			#{authId}, 
+			#{authType}, 
+			#{content}, 
+			#{createTime}, 
+			#{finishTime}, 
+			#{lables}, 
+			#{notOperateds}, 
+			#{overt}, 
+			#{praises}, 
+			#{taskId}, 
+			#{title}, 
+			#{type},
+			#{collectionNum},
+			#{tinyType}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.classtop.entity.ClassTopEntity">
+		update class_top 
+		<set>
+			<if test="alreadyOperateds != null">`already_operateds` = #{alreadyOperateds}, </if>
+			<if test="authId != null">`auth_id` = #{authId}, </if>
+			<if test="authType != null">`auth_type` = #{authType}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="finishTime != null">`finish_time` = #{finishTime}, </if>
+			<if test="lables != null">`lables` = #{lables}, </if>
+			<if test="notOperateds != null">`not_operateds` = #{notOperateds}, </if>
+			<if test="overt != null">`overt` = #{overt}, </if>
+			<if test="praises != null">`praises` = #{praises}, </if>
+			<if test="taskId != null">`task_id` = #{taskId}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="collectionNum != null">`collection_num` = #{collectionNum},</if>
+			<if test="collectionNum != null">`tiny_type` = #{tinyType}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from class_top where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from class_top where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

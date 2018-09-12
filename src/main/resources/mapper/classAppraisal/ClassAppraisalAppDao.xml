@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classAppraisal.dao.ClassAppraisalDao">
+	<resultMap id="rosterMap" type="java.util.Map">
+		<result property="praiseCount" column="praise_count"/>
+		<result property="unPraiseCount" column="un_praise_count"/>
+		<result property="targetId" column="target_id"/>
+	</resultMap>
+
+	<resultMap id="queryAppraisalCount4StuMap" type="java.util.Map">
+		<result property="targetId" column="target_id"/>
+		<result property="appraisal" column="appraisal"/>
+		<result property="state" column="state"/>
+		<result property="numCount" column="numCount"/>
+	</resultMap>
+	<!-- 根据 学生id 班级id 查询该学生的表扬次数批评次数   当天的表扬次数批评次数   若区分学期 semester为必传字段 代码中后期加验证 -->
+	<select id="queryAppraise4stu" resultMap="rosterMap">
+		select target_id, sum(praise_count) praise_count, sum(un_praise_count) un_praise_count from(
+			select target_id, count(*) praise_count, 0 as un_praise_count from class_appraisal
+			where class_appraisal.state= 1
+			<if test="authId != null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="classId != null and classId !=''">
+				and class_id =#{classId}
+			</if>
+			<if test="targetId != null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+			<if test="semester !=null and semester !=''">
+				and semester = #{semester}
+			</if>
+			<if test="createTimeStart != null and createTimeStart !=''">
+				and create_time &gt;=#{createTimeStart}
+			</if>
+			<if test="createTimeEnd != null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+			union
+			select target_id,0 as praise_count, count(*) as un_praise_count from class_appraisal
+			where class_appraisal.state= 2
+			<if test="authId != null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="classId != null and classId !=''">
+				and class_id =#{classId}
+			</if>
+			<if test="targetId != null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+			<if test="semester !=null and semester !=''">
+				and semester = #{semester}
+			</if>
+			<if test="createTimeStart != null and createTimeStart !=''">
+				and create_time &gt;=#{createTimeStart}
+			</if>
+			<if test="createTimeEnd != null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+		) as tmp
+
+	</select>
+	<select id="queryVoList" resultType="com.lhh.modules.classAppraisal.entity.ClassAppraisalVo">
+		select * from class_appraisal
+		<where>
+			<if test="aprId != null and aprId !=''">
+				and apr_id =#{aprId}
+			</if>
+			<if test="parentId != null and parentId !=''">
+				and parent_id =#{parentId}
+			</if>
+			<if test="authId != null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="classId != null and classId !=''">
+				and class_id =#{classId}
+			</if>
+			<if test="authType != null and authType !=''">
+				and auth_type =#{authType}
+			</if>
+			<if test="targetId != null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+			<if test="appraisal != null and appraisal !=''">
+				and appraisal =#{appraisal}
+			</if>
+			<if test="state != null and state !=''">
+				and `state` =#{state}
+			</if>
+			<if test="semester !=null and semester !=''">
+				and semester = #{semester}
+			</if>
+			<if test="createTimeStart != null and createTimeStart !=''">
+				and create_time &gt;=#{createTimeStart}
+			</if>
+			<if test="createTimeEnd != null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+		</where>
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by apr_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+
+	</select>
+	<!-- 查询学生在某一学段内 根据评价分组统计次数 -->
+	<select id="queryAppraisalCount4Stu" resultMap="queryAppraisalCount4StuMap">
+		select appraisal,state, count(*) as numCount from class_appraisal
+		<where>
+			
+			<if test="targetId != null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+			<if test="semester !=null and semester !=''">
+				and semester = #{semester}
+			</if>
+			<if test="classId != null and classId !=''">
+				and class_appraisal.class_id =#{classId}
+			</if>
+			<if test="state != null and state !=''">
+				and class_appraisal.state =#{state}
+			</if>
+		</where>
+		group by appraisal
+		order by max(create_time) desc
+	</select>
+	<select id="appraisalList" resultType="com.lhh.modules.classMessage.domain.MsgAndAppraisalVo">
+		select apr_id as id, auth_id, target_id, appraisal as content, state, create_time, parent_id,class_id from class_appraisal
+		where auth_id = #{authId}
+		and parent_id = #{parentId}
+		order by create_time asc
+	</select>
+	<select id="queryListNoChild" resultType="com.lhh.modules.classAppraisal.entity.ClassAppraisalVo">
+		select * from class_appraisal
+		where parent_id is null
+			<if test="aprId != null and aprId !=''">
+				and apr_id =#{aprId}
+			</if>
+			<if test="parentId != null and parentId !=''">
+				and parent_id =#{parentId}
+			</if>
+			<if test="authId != null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="classId != null and classId !=''">
+				and class_id =#{classId}
+			</if>
+			<if test="authType != null and authType !=''">
+				and auth_type =#{authType}
+			</if>
+			<if test="targetId != null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+			<if test="appraisal != null and appraisal !=''">
+				and appraisal =#{appraisal}
+			</if>
+			<if test="state != null and state !=''">
+				and `state` =#{state}
+			</if>
+			<if test="semester !=null and semester !=''">
+				and semester = #{semester}
+			</if>
+			<if test="createTimeStart != null and createTimeStart !=''">
+				and create_time &gt;=#{createTimeStart}
+			</if>
+			<if test="createTimeEnd != null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by apr_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+
+	</select>
+	<select id="queryTotalNoChild" resultType="int">
+		select count(*) from class_appraisal
+		where parent_id is null
+		<if test="aprId != null and aprId !=''">
+			and apr_id =#{aprId}
+		</if>
+		<if test="parentId != null and parentId !=''">
+			and parent_id =#{parentId}
+		</if>
+		<if test="authId != null and authId !=''">
+			and auth_id =#{authId}
+		</if>
+		<if test="classId != null and classId !=''">
+			and class_id =#{classId}
+		</if>
+		<if test="authType != null and authType !=''">
+			and auth_type =#{authType}
+		</if>
+		<if test="targetId != null and targetId !=''">
+			and target_id =#{targetId}
+		</if>
+		<if test="appraisal != null and appraisal !=''">
+			and appraisal =#{appraisal}
+		</if>
+		<if test="state != null and state !=''">
+			and `state` =#{state}
+		</if>
+		<if test="semester !=null and semester !=''">
+			and semester = #{semester}
+		</if>
+		<if test="createTimeStart != null and createTimeStart !=''">
+			and create_time &gt;=#{createTimeStart}
+		</if>
+		<if test="createTimeEnd != null and createTimeEnd !=''">
+			and create_time &lt;=#{createTimeEnd}
+		</if>
+
+	</select>
+</mapper>

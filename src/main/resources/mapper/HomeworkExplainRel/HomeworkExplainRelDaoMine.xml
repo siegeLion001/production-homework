@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.HomeworkExplainRel.dao.HomeworkExplainRelDao">
+
+	<insert id="saveBatch" parameterType="java.util.List">
+		insert into homework_explain_rel
+		(
+			`e_id`, 
+			`stu_id`, 
+			`class_id`
+		)
+		values
+		<foreach collection="list" item="item" separator="," open="(" close=")">
+			#{item.eId},
+			#{item.stuId},
+			#{item.classId}
+		</foreach>
+	</insert>
+
+</mapper>

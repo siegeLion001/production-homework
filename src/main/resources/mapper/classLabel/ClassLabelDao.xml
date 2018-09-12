@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classLabel.dao.ClassLabelDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.classLabel.entity.ClassLabelEntity" id="classLabelMap">
+        <result property="labelId" column="label_id"/>
+        <result property="labelName" column="label_name"/>
+        <result property="type" column="type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createId" column="create_id"/>
+        <result property="reserve" column="reserve"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.classLabel.entity.ClassLabelEntity">
+		select * from class_label where label_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.classLabel.entity.ClassLabelEntity">
+		select * from class_label
+		<where>
+			<if test="labelId !=null and labelId !=''">
+				and label_id =#{labelId}
+			</if>
+			<if test="labelName !=null and labelName !=''">
+				and label_name  = #{labelName}
+			</if>
+			<if test="createId !=null and createId != ''">
+				and `create_id`= #{createId} or `create_id` is null
+			</if>
+			<if test="type !=null and type !=''">
+				and `type` =#{type}
+			</if>
+			<if test="createTimeStart !=null and createTimeStart !=''">
+				and create_time &gt;= #{createTimeStart}
+			</if>
+			<if test="createTimeEnd !=null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by label_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from class_label
+		<where>
+			<if test="labelId !=null and labelId !=''">
+				and label_id =#{labelId}
+			</if>
+			<if test="labelName !=null and labelName !=''">
+				and label_name  =#{labelName}
+			</if>
+			<if test="type !=null and type !=''">
+				and `type` =#{type}
+			</if>
+			<if test="createId !=null and createId != ''">
+				and `create_id`= #{createId} or `create_id` is null
+			</if>
+			<if test="createTimeStart !=null and createTimeStart !=''">
+				and create_time &gt;= #{createTimeStart}
+			</if>
+			<if test="createTimeEnd !=null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+
+		</where>
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.classLabel.entity.ClassLabelEntity" useGeneratedKeys="true" keyProperty="labelId">
+		insert into class_label
+		(
+			`label_name`, 
+			`type`, 
+			`create_time`,
+			`create_id`,
+			`reserve`
+		)
+		values
+		(
+			#{labelName}, 
+			#{type}, 
+			#{createTime},
+			#{createId},
+			#{reserve}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.classLabel.entity.ClassLabelEntity">
+		update class_label 
+		<set>
+			<if test="labelName != null">`label_name` = #{labelName}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="createId != null">`create_id` = #{createId}, </if>
+			<if test="reserve != null">`reserve` = #{reserve}</if>
+		</set>
+		where label_id = #{labelId}
+	</update>
+	
+	<delete id="delete">
+		delete from class_label where label_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from class_label where label_id in 
+		<foreach item="labelId" collection="array" open="(" separator="," close=")">
+			#{labelId}
+		</foreach>
+	</delete>
+
+</mapper>

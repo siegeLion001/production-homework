@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>应用版本信息表</title>
+<#include "/header.html">
+<link rel="stylesheet" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+<script src="${request.contextPath}/statics/libs/ajaxupload.js"></script>
+<script>
+//获取页面传参
+function GetQueryString(name){
+var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+var r = window.location.search.substr(1).match(reg);
+// console.log(r);
+if(r!=null)return unescape(r[2]); return null;
+} 	
+	var str=GetQueryString("appId");
+	console.log(str)
+</script>	
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div v-show="showList">
+		<div class="grid-btn">
+			<#if shiro.hasPermission("appversioninfo:save")>
+             <a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+			</#if>
+			<#if shiro.hasPermission("appversioninfo:update")>
+            <a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+			</#if>
+			<#if shiro.hasPermission("appversioninfo:delete")>
+            <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+			</#if>
+		</div>
+	    <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>
+    </div>
+    
+    <div v-show="!showList" class="panel panel-default">
+		<div class="panel-heading">{{title}}</div>
+		<form class="form-horizontal">
+			<div class="form-group">
+			   	<div class="col-sm-2 control-label">版本更新介绍</div>
+			   	<div class="col-sm-10">
+			   	 	<textarea class="form-control" v-model="appVersionInfo.introduce" placeholder="版本更新介绍"></textarea>
+			    </div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label">上传安装包</div>
+					<div class="col-sm-10">
+			        	<form class="container" enctype="multipart/form-data" method="post" id='formBox' name="form"> 
+			        	    <input type="text" id="apkPath"  class="form-control" v-model="appVersionInfo.appPath" readonly placeholder="文件路径"/>
+	                    	<input type="file" id="uploadApk" name="file" value="选择文件">
+	            			<br/>
+	            			<img id="image" value='custom'  alt="" data-address=''/>
+	                    </form>
+	                </div>
+	         </div> 
+			 <div class="form-group">
+				<div class="col-sm-2 control-label"></div> 
+				<input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+				&nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+			</div>
+		</form>
+	</div>
+</div>
+<script src="${request.contextPath}/statics/plugins/layui/layui.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/plugins/layui/lay/lib/jquery.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/js/modules/appCenter/appversioninfo.js?_${.now?long}"></script>
+</body>
+</html>

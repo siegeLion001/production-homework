@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.cmtextcontent.dao.CmTextContentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.cmtextcontent.entity.CmTextContentEntity" id="cmTextContentMap">
+        <result property="id" column="id"/>
+        <result property="typeId" column="type_id"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="articleName" column="article_name"/>
+        <result property="articleValue" column="article_value"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.cmtextcontent.entity.CmTextContentEntity">
+		select * from cm_text_content where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.cmtextcontent.entity.CmTextContentEntity">
+		select * from cm_text_content
+		<where>
+			<if test="typeId !=null and typeId !=''">
+				and type_id = #{typeId}
+			</if>
+			<if test="publisherId !=null and publisherId !=''">
+				and publisher_id = #{publisherId}
+			</if>
+			<if test="bookId !=null and bookId !=''">
+				and book_id = #{bookId}
+			</if>
+
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from cm_text_content
+		<where>
+			<if test="typeId !=null and typeId !=''">
+				and type_id = #{typeId}
+			</if>
+			<if test="publisherId !=null and publisherId !=''">
+				and publisher_id = #{publisherId}
+			</if>
+			<if test="bookId !=null and bookId !=''">
+				and book_id = #{bookId}
+			</if>
+		</where>
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.cmtextcontent.entity.CmTextContentEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into cm_text_content
+		(
+			`type_id`, 
+			`publisher_id`, 
+			`book_id`, 
+			`article_name`, 
+			`article_value`
+		)
+		values
+		(
+			#{typeId}, 
+			#{publisherId}, 
+			#{bookId}, 
+			#{articleName}, 
+			#{articleValue}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.cmtextcontent.entity.CmTextContentEntity">
+		update cm_text_content 
+		<set>
+			<if test="typeId != null">`type_id` = #{typeId}, </if>
+			<if test="publisherId != null">`publisher_id` = #{publisherId}, </if>
+			<if test="bookId != null">`book_id` = #{bookId}, </if>
+			<if test="articleName != null">`article_name` = #{articleName}, </if>
+			<if test="articleValue != null">`article_value` = #{articleValue}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from cm_text_content where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from cm_text_content where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.appCenter.dao.AppSearchRecordInfoDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.appCenter.entity.AppSearchRecordInfoEntity" id="appSearchRecordInfoMap">
+        <result property="appSearchRecordId" column="app_search_record_id"/>
+        <result property="client" column="client"/>
+        <result property="content" column="content"/>
+        <result property="count" column="count"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.appCenter.entity.AppSearchRecordInfoEntity">
+		select * from app_search_record_info where app_search_record_id = #{value}
+	</select>
+	<select id="queryOne" resultType="com.lhh.modules.appCenter.entity.AppSearchRecordInfoEntity" parameterType="Map">
+		select * from app_search_record_info where content = #{appName}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.appCenter.entity.AppSearchRecordInfoEntity" parameterType="Map">
+		select * from app_search_record_info
+		where 1=1
+		<if test="startTime != null and startTime != ''">
+		    and  DATE_FORMAT(create_time,'%Y-%m-%d') <![CDATA[>=]]> #{startTime}
+		</if>
+		<if test="endTime != null and endTime != ''">
+		    and DATE_FORMAT(create_time,'%Y-%m-%d') <![CDATA[<=]]> #{endTime}
+		</if>
+		<if test="client != null and client != ''">
+		    and client= #{client}
+		</if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by app_search_record_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select> 
+	
+ 	<select id="queryTotal" resultType="int" parameterType="Map">
+		select count(*) from app_search_record_info
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.appCenter.entity.AppSearchRecordInfoEntity" useGeneratedKeys="true" keyProperty="appSearchRecordId">
+		insert into app_search_record_info
+		(
+			`client`, 
+			`content`, 
+			`count`, 
+			`create_time`
+		)
+		values
+		(
+			#{client}, 
+			#{content}, 
+			#{count}, 
+			#{createTime}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.appCenter.entity.AppSearchRecordInfoEntity">
+		update app_search_record_info 
+		<set>
+			<if test="client != null">`client` = #{client}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="count != null">`count` = #{count}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}</if>
+		</set>
+		where app_search_record_id = #{appSearchRecordId}
+	</update>
+	
+	<delete id="delete">
+		delete from app_search_record_info where app_search_record_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from app_search_record_info where app_search_record_id in 
+		<foreach item="appSearchRecordId" collection="array" open="(" separator="," close=")">
+			#{appSearchRecordId}
+		</foreach>
+	</delete>
+
+</mapper>

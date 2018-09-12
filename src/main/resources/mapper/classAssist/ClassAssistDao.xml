@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classAssist.dao.ClassAssistDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.classAssist.entity.ClassAssistEntity" id="classAssistMap">
+        <result property="assId" column="ass_id"/>
+        <result property="topId" column="top_id"/>
+        <result property="authId" column="auth_id"/>
+        <result property="targetId" column="target_id"/>
+        <result property="assistMark" column="assist_mark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.classAssist.entity.ClassAssistEntity">
+		select * from class_assist where ass_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.classAssist.entity.ClassAssistEntity">
+		select * from class_assist
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by ass_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from class_assist 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.classAssist.entity.ClassAssistEntity" useGeneratedKeys="true" keyProperty="assId">
+		insert into class_assist
+		(
+			`top_id`, 
+			`auth_id`, 
+			`target_id`, 
+			`assist_mark`, 
+			`create_time`
+		)
+		values
+		(
+			#{topId}, 
+			#{authId}, 
+			#{targetId}, 
+			#{assistMark}, 
+			#{createTime}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.classAssist.entity.ClassAssistEntity">
+		update class_assist 
+		<set>
+			<if test="topId != null">`top_id` = #{topId}, </if>
+			<if test="authId != null">`auth_id` = #{authId}, </if>
+			<if test="targetId != null">`target_id` = #{targetId}, </if>
+			<if test="assistMark != null">`assist_mark` = #{assistMark}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}</if>
+		</set>
+		where ass_id = #{assId}
+	</update>
+	
+	<delete id="delete">
+		delete from class_assist where ass_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from class_assist where ass_id in 
+		<foreach item="assId" collection="array" open="(" separator="," close=")">
+			#{assId}
+		</foreach>
+	</delete>
+
+</mapper>

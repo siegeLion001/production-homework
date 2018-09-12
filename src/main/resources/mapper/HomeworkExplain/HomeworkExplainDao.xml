@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.HomeworkExplain.dao.HomeworkExplainDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.HomeworkExplain.entity.HomeworkExplainEntity" id="homeworkExplainMap">
+        <result property="id" column="id"/>
+        <result property="tchId" column="tch_id"/>
+        <result property="homeworkId" column="homework_id"/>
+        <result property="classIds" column="class_ids"/>
+        <result property="bNum" column="b_num"/>
+        <result property="sNum" column="s_num"/>
+        <result property="vClass" column="v_class"/>
+        <result property="vPicture" column="v_picture"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.HomeworkExplain.entity.HomeworkExplainEntity">
+		select * from homework_explain where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.HomeworkExplain.entity.HomeworkExplainEntity">
+		select * from homework_explain
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from homework_explain 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.HomeworkExplain.entity.HomeworkExplainEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into homework_explain
+		(
+			`tch_id`, 
+			`homework_id`,
+			`class_ids`, 
+			`b_num`, 
+			`s_num`, 
+			`v_class`, 
+			`v_picture`
+		)
+		values
+		(
+			#{tchId}, 
+			#{homeworkId},
+			#{classIds}, 
+			#{bNum}, 
+			#{sNum}, 
+			#{vClass}, 
+			#{vPicture}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.HomeworkExplain.entity.HomeworkExplainEntity">
+		update homework_explain 
+		<set>
+			<if test="tchId != null">`tch_id` = #{tchId}, </if>
+			<if test="homeworkId != null">`homework_id` = #{homeworkId}, </if>
+			<if test="classIds != null">`class_ids` = #{classIds}, </if>
+			<if test="bNum != null">`b_num` = #{bNum}, </if>
+			<if test="sNum != null">`s_num` = #{sNum}, </if>
+			<if test="vClass != null">`v_class` = #{vClass}, </if>
+			<if test="vPicture != null">`v_picture` = #{vPicture}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from homework_explain where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from homework_explain where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

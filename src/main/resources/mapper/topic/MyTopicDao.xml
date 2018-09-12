@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.topic.dao.TopicDao">
+    <insert id="saveBatch" parameterType="java.util.List">
+        insert into topic
+        (
+        `homework_id`,
+        `topic_cluster_id`,
+        `type`,
+        `content`,
+        `b_num`,
+        `b_score`,
+        `s_num`,
+        `s_score`,
+        `correct_answer`,
+        `explanation`,
+        `question_id`,
+        `source`,
+        `tch_id`
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.homeworkId},
+            #{item.topicClusterId},
+            #{item.type},
+            #{item.content},
+            #{item.bNum},
+            #{item.bScore},
+            #{item.sNum},
+            #{item.sScore},
+            #{item.correctAnswer},
+            #{item.explanation},
+            #{item.questionId},
+            #{item.source},
+            #{item.tchId}
+            )
+        </foreach>
+
+    </insert>
+    <select id="queryList4Vo" resultType="com.lhh.modules.topic.domain.TopicVo">
+        select * from topic
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id =#{homeworkId}
+            </if>
+            <if test="topicClusterId !=null and topicClusterId !=''">
+                and topic_cluster_id =#{topicClusterId}
+            </if>
+            <if test="type !=null and type !=''">
+                and `type` =#{type}
+            </if>
+            <if test="bNum !=null and bNum !=''">
+                and b_num =#{bNum}
+            </if>
+            <if test="sNum !=null and sNum !=''">
+                and s_num =#{sNum}
+            </if>
+            <if test="source !=null and source !=''">
+                and source =#{source}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx}+0 ${order}
+            </when>
+            <otherwise>
+                order by id DESC
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <delete id="delete4Map" parameterType="java.util.Map">
+        delete from topic
+        <where>
+            <if test=" homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+        </where>
+    </delete>
+
+    <select id="classWrongTopicsTotal" resultType="int">
+        SELECT count(*) FROM (
+        SELECT question_id,content,AVG(wrongRate) AS wrongRate,AVG(wrong) AS wrong ,AVG(total) AS
+        total,type,MAX(create_time) AS create_time FROM (
+        SELECT
+        topic.*,
+        tmp2.fz / tmp2.fm AS wrongRate,
+        tmp2.fz AS wrong,
+        tmp2.fm AS total,
+        homework.create_time
+        FROM
+        topic INNER JOIN homework
+        INNER JOIN
+        (
+        SELECT
+        tmp0.s_num,
+        tmp0.b_num,
+        IFNULL(tmp0.fm,0) AS fm,
+        IFNULL(tmp1.fz,0) AS fz
+        FROM
+        (
+        SELECT b_num, s_num, COUNT( * ) AS fm FROM stu_topic
+        <where>
+            mark = 1
+
+        </where>
+        GROUP BY b_num, s_num
+        ) AS tmp0
+        LEFT JOIN
+        (
+        SELECT b_num, s_num, COUNT( * ) AS fz FROM stu_topic
+        <where>
+            mark = 1 and actual_score != s_score
+
+        </where>
+        GROUP BY b_num,
+        s_num
+        ) AS tmp1 ON tmp0.b_num = tmp1.b_num
+        AND tmp0.s_num = tmp1.s_num
+        ) AS tmp2 ON topic.b_num = tmp2.b_num
+        AND topic.s_num = tmp2.s_num
+        <where>
+            tmp2.fz / tmp2.fm is NOT null
+            AND question_id IS NOT null
+            <if test="wrongRate !=null and wrongRate !=''">
+                and tmp2.fz / tmp2.fm &gt; #{wrongRate}
+            </if>
+            <if test="source !=null and source !=''">
+                and topic.source = #{source}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and topic.tch_id = #{tchId}
+            </if>
+            <if test="type !=null">
+                and topic.type = #{type}
+            </if>
+            <if test="startTime !=null ">
+                and homework.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime !=null ">
+                and homework.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ) tt GROUP BY question_id,content,type
+        ) ct
+    </select>
+
+    <select id="classWrongTopics" resultType="com.lhh.modules.topic.domain.ClassWrongItem">
+        SELECT question_id,content,AVG(wrongRate) AS wrongRate,AVG(wrong) AS wrong ,AVG(total) AS
+        total,type,MAX(create_time) AS create_time FROM (
+        SELECT
+        topic.*,
+        tmp2.fz / tmp2.fm AS wrongRate,
+        tmp2.fz AS wrong,
+        tmp2.fm AS total,
+        homework.create_time
+        FROM
+        topic INNER JOIN homework
+        INNER JOIN
+        (
+        SELECT
+        tmp0.s_num,
+        tmp0.b_num,
+        IFNULL(tmp0.fm,0) AS fm,
+        IFNULL(tmp1.fz,0) AS fz
+        FROM
+        (
+        SELECT b_num, s_num, COUNT( * ) AS fm FROM stu_topic WHERE mark = 1 GROUP BY b_num, s_num
+        ) AS tmp0
+        LEFT JOIN
+        (
+        SELECT b_num, s_num, COUNT( * ) AS fz FROM stu_topic WHERE mark = 1 and actual_score != s_score GROUP BY b_num,
+        s_num
+        ) AS tmp1 ON tmp0.b_num = tmp1.b_num
+        AND tmp0.s_num = tmp1.s_num
+        ) AS tmp2 ON topic.b_num = tmp2.b_num
+        AND topic.s_num = tmp2.s_num
+        <where>
+            tmp2.fz / tmp2.fm is NOT null
+            AND question_id IS NOT null
+            <if test="wrongRate !=null and wrongRate !=''">
+                and tmp2.fz / tmp2.fm &gt; #{wrongRate}
+            </if>
+            <if test="source !=null and source !=''">
+                and topic.source = #{source}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and topic.tch_id = #{tchId}
+            </if>
+            <if test="type !=null">
+                and topic.type = #{type}
+            </if>
+            <if test="startTime !=null ">
+                and homework.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime !=null ">
+                and homework.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ) tt GROUP BY question_id,content,type
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by wrongRate asc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+
+    <select id="stuWrongTopics" resultType="com.lhh.modules.stutopic.domain.StuTopicVo">
+        SELECT question_id,content,type,MAX(create_time) AS create_time FROM
+        (
+        SELECT
+            stu_topic.stu_id,
+            topic.source,
+            topic.question_id,
+            topic.content,
+            topic.type,
+            homework.create_time
+        FROM
+            topic
+        INNER JOIN homework
+        INNER JOIN stu_topic
+          ON topic.b_num = stu_topic.b_num
+          AND topic.s_num = stu_topic.s_num
+          AND topic.homework_id = homework.id
+          AND topic.homework_id = stu_topic.homework_id
+        <where>
+            topic.question_id IS NOT null
+            <if test="stuId !=null and stuId !=''">
+                and stu_topic.stu_id = #{stuId}
+            </if>
+            <if test="source !=null and source !=''">
+                and topic.source = #{source}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and topic.tch_id = #{tchId}
+            </if>
+            <if test="type !=null">
+                and topic.type = #{type}
+            </if>
+            <if test="startTime !=null ">
+                and homework.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime !=null ">
+                and homework.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ) tt GROUP BY question_id,content,type
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by create_time asc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+
+    <select id="stuWrongTopicsTotal" resultType="int">
+        SELECT count(*) FROM (
+            SELECT question_id,content,type,MAX(create_time) AS create_time FROM
+            (
+            SELECT
+            stu_topic.stu_id,
+            topic.source,
+            topic.question_id,
+            topic.content,
+            topic.type,
+            homework.create_time
+            FROM
+            topic
+            INNER JOIN homework
+            INNER JOIN stu_topic
+            ON topic.b_num = stu_topic.b_num
+            AND topic.s_num = stu_topic.s_num
+            AND topic.homework_id = homework.id
+            AND topic.homework_id = stu_topic.homework_id
+            <where>
+                topic.question_id IS NOT null
+                <if test="stuId !=null and stuId !=''">
+                    and stu_topic.stu_id = #{stuId}
+                </if>
+                <if test="source !=null and source !=''">
+                    and topic.source = #{source}
+                </if>
+                <if test="tchId !=null and tchId !=''">
+                    and topic.tch_id = #{tchId}
+                </if>
+                <if test="type !=null">
+                    and topic.type = #{type}
+                </if>
+                <if test="startTime !=null ">
+                    and homework.create_time &gt;= #{startTime}
+                </if>
+                <if test="endTime !=null ">
+                    and homework.create_time &lt;= #{endTime}
+                </if>
+            </where>
+            ) tt GROUP BY question_id,content,type
+        ) ct
+    </select>
+
+    <select id="queryList4VoJoinStu" resultType="com.lhh.modules.topic.domain.TopicVo">
+        select topic.*,stu_topic.actual_score from topic
+        left join stu_topic on topic.homework_id = stu_topic.homework_id
+        and topic.b_num = stu_topic.b_num
+        and topic.s_num = stu_topic.s_num
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and topic.homework_id =#{homeworkId}
+            </if>
+            <if test="topicClusterId !=null and topicClusterId !=''">
+                and topic.topic_cluster_id =#{topicClusterId}
+            </if>
+            <if test="type !=null and type !=''">
+                and topic.`type` =#{type}
+            </if>
+            <if test="bNum !=null and bNum !=''">
+                and topic.b_num =#{bNum}
+            </if>
+            <if test="sNum !=null and sNum !=''">
+                and topic.s_num =#{sNum}
+            </if>
+            <if test="source !=null and source !=''">
+                and topic.source =#{source}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by topic.${sidx}+0 ${order}
+            </when>
+            <otherwise>
+                order by topic.id DESC
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stuMistakeBook.dao.StuMistakeBookDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookEntity" id="stuMistakeBookMap">
+        <result property="id" column="id"/>
+        <result property="subjctId" column="subjct_id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="sectionId" column="section_id"/>
+        <result property="stuId" column="stu_id"/>
+        <result property="topContent" column="top_content"/>
+        <result property="topAnalysis" column="top_analysis"/>
+        <result property="correctAnswer" column="correct_answer"/>
+        <result property="topType" column="top_type"/>
+        <result property="mistakeReason" column="mistake_reason"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="reserve1" column="reserve1"/>
+        <result property="isGrasp" column="is_grasp"/>
+        <result property="knowledgeId" column="knowledge_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="stuTopicClusterId" column="stu_topic_cluster_id"/>
+        <result property="stuTopicId" column="stu_topic_id"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookEntity">
+		select * from stu_mistake_book where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookEntity">
+		select * from stu_mistake_book
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from stu_mistake_book 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into stu_mistake_book
+		(
+			`subjct_id`, 
+			`book_id`, 
+			`section_id`, 
+			`stu_id`, 
+			`top_content`, 
+			`top_analysis`, 
+			`correct_answer`, 
+			`top_type`, 
+			`mistake_reason`, 
+			`difficulty`,
+			`reserve1`,
+			`is_grasp`,
+			`knowledge_id`,
+			`class_id`,
+			`stu_topic_cluster_id`,
+			`stu_topic_id`
+		)
+		values
+		(
+			#{subjctId}, 
+			#{bookId}, 
+			#{sectionId}, 
+			#{stuId}, 
+			#{topContent}, 
+			#{topAnalysis}, 
+			#{correctAnswer}, 
+			#{topType}, 
+			#{mistakeReason}, 
+			#{difficulty},
+			#{reserve1},
+			#{isGrasp},
+			#{knowledgeId},
+			#{classId},
+			#{stuTopicClusterId},
+			#{stuTopicId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookEntity">
+		update stu_mistake_book 
+		<set>
+			<if test="subjctId != null">`subjct_id` = #{subjctId}, </if>
+			<if test="bookId != null">`book_id` = #{bookId}, </if>
+			<if test="sectionId != null">`section_id` = #{sectionId}, </if>
+			<if test="stuId != null">`stu_id` = #{stuId}, </if>
+			<if test="topContent != null">`top_content` = #{topContent}, </if>
+			<if test="topAnalysis != null">`top_analysis` = #{topAnalysis}, </if>
+			<if test="correctAnswer != null">`correct_answer` = #{correctAnswer}, </if>
+			<if test="topType != null">`top_type` = #{topType}, </if>
+			<if test="mistakeReason != null">`mistake_reason` = #{mistakeReason}, </if>
+			<if test="difficulty != null">`difficulty` = #{difficulty}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="reserve1 != null">`reserve1` = #{reserve1},</if>
+			<if test="isGrasp != null">`is_grasp` = #{isGrasp},</if>
+			<if test="knowledgeId != null">`knowledge_id` = #{knowledgeId},</if>
+			<if test="classId != null">`class_id` = #{classId},</if>
+			<if test="stuTopicClusterId != null">`stu_topic_cluster_id` = #{stuTopicClusterId},</if>
+			<if test="stuTopicId != null">`stu_topic_id` = #{stuTopicId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from stu_mistake_book where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from stu_mistake_book where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

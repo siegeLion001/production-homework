@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stutopic.dao.StuTopicDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.stutopic.entity.StuTopicEntity" id="stuTopicMap">
+        <result property="id" column="id"/>
+        <result property="homeworkId" column="homework_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="stuId" column="stu_id"/>
+        <result property="stuTopicClusterId" column="stu_topic_cluster_id"/>
+        <result property="type" column="type"/>
+        <result property="bNum" column="b_num"/>
+        <result property="bScore" column="b_score"/>
+        <result property="sNum" column="s_num"/>
+        <result property="sScore" column="s_score"/>
+        <result property="submitContent" column="submit_content"/>
+        <result property="submitAnswer" column="submit_answer"/>
+        <result property="revisal" column="revisal"/>
+        <result property="revisalContent" column="revisal_content"/>
+        <result property="mark" column="mark"/>
+        <result property="actualScore" column="actual_score"/>
+        <result property="excellent" column="excellent"/>
+        <result property="collect" column="collect"/>
+        <result property="tchId" column="tch_id"/>
+        <result property="questionId" column="question_id"/>
+    </resultMap>
+
+    <select id="queryObject" resultType="com.lhh.modules.stutopic.entity.StuTopicEntity">
+		select * from stu_topic where id = #{value}
+	</select>
+
+    <select id="queryList" resultType="com.lhh.modules.stutopic.entity.StuTopicEntity">
+        select * from stu_topic
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+            <if test="classId !=null and  classId !=''">
+                and class_id = #{classId}
+            </if>
+            <if test="stuTopicClusterId !=null and  stuTopicClusterId !=''">
+                and stu_topic_cluster_id = #{stuTopicClusterId}
+            </if>
+            <if test="excellent !=null and excellent !=''">
+                and excellent = #{excellent}
+            </if>
+            <if test="collect !=null and collect !=''">
+                and collect = #{collect}
+            </if>
+            <if test="bNum !=null and bNum !=''">
+                and b_num = #{bNum}
+            </if>
+            <if test="sNum !=null and sNum !=''">
+                and s_num = #{sNum}
+            </if>
+            <if test="mark !=null">
+                and mark = #{mark}
+            </if>
+            <if test="questionId !=null and questionId !=''">
+                and question_id = #{questionId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx}+0 ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryTotal" resultType="int">
+        select count(*) aCount from stu_topic
+        <where>
+            <if test="stuTopicClusterId != null and stuTopicClusterId !=''">
+                and stu_topic_cluster_id = #{stuTopicClusterId}
+            </if>
+            <if test="classId != null and classId !=''">
+                and class_id = #{classId}
+            </if>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="stuId != null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+            <if test="type != null and type !=''">
+                and `type` = #{type}
+            </if>
+            <if test="revisal != null and revisal !=''">
+                and revisal = #{revisal}
+            </if>
+            <if test="mark != null and mark !=''">
+                and mark = #{mark}
+            </if>
+            <if test="excellent !=null and excellent !=''">
+                and excellent = #{excellent}
+            </if>
+            <if test="collect !=null and collect !=''">
+                and collect = #{collect}
+            </if>
+            <if test="questionId !=null and questionId !=''">
+                and question_id = #{questionId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="save" parameterType="com.lhh.modules.stutopic.entity.StuTopicEntity" useGeneratedKeys="true"
+            keyProperty="id">
+		insert into stu_topic
+		(
+			`homework_id`,
+			`class_id`,
+			`stu_id`,
+			`stu_topic_cluster_id`,
+			`type`,
+			`b_num`,
+			`b_score`,
+			`s_num`,
+			`s_score`,
+			`submit_content`,
+			`submit_answer`,
+			`revisal`,
+			`revisal_content`,
+			`mark`,
+			`actual_score`,
+			`excellent`,
+			`collect`,
+			`tch_id`,
+			`question_id`
+		)
+		values
+		(
+			#{homeworkId},
+			#{classId},
+			#{stuId},
+			#{stuTopicClusterId},
+			#{type},
+			#{bNum},
+			#{bScore},
+			#{sNum},
+			#{sScore},
+			#{submitContent},
+			#{submitAnswer},
+			#{revisal},
+			#{revisalContent},
+			#{mark},
+			#{actualScore},
+			#{excellent},
+			#{collect},
+			#{tchId},
+			#{questionId}
+		)
+	</insert>
+
+    <update id="update" parameterType="com.lhh.modules.stutopic.entity.StuTopicEntity">
+        update stu_topic
+        <set>
+            <if test="homeworkId != null">`homework_id` = #{homeworkId},</if>
+            <if test="classId != null">`class_id` = #{classId},</if>
+            <if test="stuId != null">`stu_id` = #{stuId},</if>
+            <if test="stuTopicClusterId != null">`stu_topic_cluster_id` = #{stuTopicClusterId},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="bNum != null">`b_num` = #{bNum},</if>
+            <if test="bScore != null">`b_score` = #{bScore},</if>
+            <if test="sNum != null">`s_num` = #{sNum},</if>
+            <if test="sScore != null">`s_score` = #{sScore},</if>
+            <if test="submitContent != null">`submit_content` = #{submitContent},</if>
+            <if test="submitAnswer != null">`submit_answer` = #{submitAnswer},</if>
+            <if test="revisal != null">`revisal` = #{revisal},</if>
+            <if test="revisalContent != null">`revisal_content` = #{revisalContent},</if>
+            <if test="mark != null">`mark` = #{mark},</if>
+            <if test="actualScore != null">`actual_score` = #{actualScore},</if>
+            <if test="excellent != null">`excellent` = #{excellent},</if>
+            <if test="collect != null">`collect` = #{collect},</if>
+            <if test="tchId != null">`tch_id` = #{tchId},</if>
+            <if test="questionId != null">`question_id` = #{questionId}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+		delete from stu_topic where id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from stu_topic where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.homeworktemp.dao.HomeworkTempDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.homework.entity.HomeworkEntity" id="homeworkTempMap">
+        <result property="id" column="id"/>
+        <result property="tchId" column="tch_id"/>
+        <result property="classIds" column="class_ids"/>
+        <result property="subject" column="subject"/>
+        <result property="period" column="period"/>
+        <result property="book" column="book"/>
+        <result property="type" column="type"/>
+        <result property="title" column="title"/>
+        <result property="remark" column="remark"/>
+        <result property="content" column="content"/>
+        <result property="answerCard" column="answer_card"/>
+        <result property="finishTime" column="finish_time"/>
+        <result property="releaseTime" column="release_time"/>
+        <result property="publishTime" column="publish_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="state" column="state"/>
+        <result property="answerImgs" column="answer_imgs"/>
+        <result property="delMark" column="del_mark"/>
+        <result property="readContent" column="read_content"/>
+        <result property="tinyType" column="tiny_type"/>
+        <result property="correctType" column="correct_type"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.homework.entity.HomeworkEntity">
+		select * from homework_temp where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.homework.entity.HomeworkEntity">
+		select * from homework_temp
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from homework_temp 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.homework.entity.HomeworkEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into homework_temp
+		(
+			`tch_id`, 
+			`class_ids`, 
+			`subject`, 
+			`period`, 
+			`book`, 
+			`type`, 
+			`title`, 
+			`remark`, 
+			`content`, 
+			`answer_card`, 
+			`finish_time`, 
+			`release_time`, 
+			`publish_time`, 
+			`create_time`, 
+			`state`, 
+			`answer_imgs`, 
+			`del_mark`, 
+			`read_content`, 
+			`tiny_type`, 
+			`correct_type`
+		)
+		values
+		(
+			#{tchId}, 
+			#{classIds}, 
+			#{subject}, 
+			#{period}, 
+			#{book}, 
+			#{type}, 
+			#{title}, 
+			#{remark}, 
+			#{content}, 
+			#{answerCard}, 
+			#{finishTime}, 
+			#{releaseTime}, 
+			#{publishTime}, 
+			#{createTime}, 
+			#{state}, 
+			#{answerImgs}, 
+			#{delMark}, 
+			#{readContent}, 
+			#{tinyType}, 
+			#{correctType}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.homework.entity.HomeworkEntity">
+		update homework_temp 
+		<set>
+			<if test="tchId != null">`tch_id` = #{tchId}, </if>
+			<if test="classIds != null">`class_ids` = #{classIds}, </if>
+			<if test="subject != null">`subject` = #{subject}, </if>
+			<if test="period != null">`period` = #{period}, </if>
+			<if test="book != null">`book` = #{book}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="remark != null">`remark` = #{remark}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="answerCard != null">`answer_card` = #{answerCard}, </if>
+			<if test="finishTime != null">`finish_time` = #{finishTime}, </if>
+			<if test="releaseTime != null">`release_time` = #{releaseTime}, </if>
+			<if test="publishTime != null">`publish_time` = #{publishTime}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="answerImgs != null">`answer_imgs` = #{answerImgs}, </if>
+			<if test="delMark != null">`del_mark` = #{delMark}, </if>
+			<if test="readContent != null">`read_content` = #{readContent}, </if>
+			<if test="tinyType != null">`tiny_type` = #{tinyType}, </if>
+			<if test="correctType != null">`correct_type` = #{correctType}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from homework_temp where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from homework_temp where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

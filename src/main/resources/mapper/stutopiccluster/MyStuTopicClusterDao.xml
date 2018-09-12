@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stutopiccluster.dao.StuTopicClusterDao">
+
+    <delete id="delete4Map" parameterType="java.util.Map">
+        delete from stu_topic_cluster
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+        </where>
+    </delete>
+    <select id="queryObjectVo" resultType="com.lhh.modules.stutopiccluster.domain.StuTopicClusterVo">
+		select * from stu_topic_cluster where id = #{value}
+	</select>
+    <select id="queryCount4Map" resultType="int">
+        select count(*) from stu_topic_cluster s
+        left join homework h on h.id = s.homework_id
+        <where>
+            <if test="collect !=null and collect !=''">
+                and s.collect = #{collect}
+            </if>
+            <if test="excellent !=null and excellent !=''">
+                and s.excellent = #{excellent}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                and s.stu_id = #{stuId}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and h.tch_id = #{tchId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and s.class_id = #{classId}
+            </if>
+            <if test="releaseTimeStart !=null and releaseTimeStart !=''">
+                and h.release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd !=null and releaseTimeEnd !=''">
+                and h.release_time &lt;= #{releaseTimeEnd}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryVoList" resultType="com.lhh.modules.stutopiccluster.domain.StuTopicClusterVo">
+        select * from stu_topic_cluster
+        <where>
+            <if test=" stuId !=null and stuId !=''">
+                and stu_id =#{stuId}
+            </if>
+            <if test=" homeworkId !=null and homeworkId !=''">
+                and homework_id =#{homeworkId}
+            </if>
+            <if test=" classId !=null and classId !=''">
+                and class_id =#{classId}
+            </if>
+            <if test=" type !=null and type !=''">
+                and `type` =#{type}
+            </if>
+            <if test=" bNum !=null and bNum !=''">
+                and `b_num` =#{bNum}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} +0 ${order}
+            </when>
+            <otherwise>
+                order by id asc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    <select id="excellentStuTopicCluster" resultType="com.lhh.modules.stutopiccluster.domain.StuTopicClusterExcellentVo">
+        SELECT
+	      homework_id,b_num,type,CONCAT( "[", GROUP_CONCAT( CONCAT( "\"", stu_id, "\"" ) ), "]" ) AS stu_list
+        FROM
+	      stu_topic_cluster
+        <where>
+            <if test="stuId !=null and stuId !=''">
+                and stu_id =#{stuId}
+            </if>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id =#{homeworkId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and class_id =#{classId}
+            </if>
+            <if test="type !=null and type !=''">
+                and type =#{type}
+            </if>
+            <if test="bNum !=null and bNum !=''">
+                and b_num =#{bNum}
+            </if>
+            <if test="excellent !=null and excellent !=''">
+                and excellent =#{excellent}
+            </if>
+        </where>
+        GROUP BY homework_id,b_num
+        order by b_num + 0
+    </select>
+
+</mapper>

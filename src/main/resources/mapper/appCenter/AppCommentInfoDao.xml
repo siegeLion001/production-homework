@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.appCenter.dao.AppCommentInfoDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.appCenter.entity.AppCommentInfoEntity" id="appCommentInfoMap">
+        <result property="commentId" column="comment_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="appVersionId" column="app_version_id"/>
+        <result property="content" column="content"/>
+        <result property="score" column="score"/>
+        <result property="commentTime" column="comment_time"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="appId" column="app_id"/>
+        
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.appCenter.entity.AppCommentInfoEntity">
+		select * from app_comment_info where comment_id = #{value}
+	</select>
+
+	<select id="list" resultType="Map" parameterType="Map">
+	SELECT
+		a.comment_id as commentId,
+		a.user_name as userName,
+		a.app_id as appId,
+		a.app_version_id as appVersionId,
+		a.content,
+		a.score,
+		a.comment_time as commentTime,
+		a.parent_id as parentId,
+		b.user_name AS object 
+	FROM
+		app_comment_info a
+		LEFT JOIN app_comment_info b ON a.parent_id = b.comment_id 
+	ORDER BY
+		a.comment_time ASC
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	<select id="queryList" resultType="com.lhh.modules.appCenter.entity.AppCommentInfoEntity" parameterType="Map">
+		select * from app_comment_info
+		where 
+		    parent_id =0 
+		    and app_id = (select app_id from app_version_info where app_version_id = #{appVersionId})
+		order by comment_time desc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from app_comment_info 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.appCenter.entity.AppCommentInfoEntity" useGeneratedKeys="true" keyProperty="commentId">
+		insert into app_comment_info
+		(
+			`user_id`, 
+			`app_version_id`, 
+			`content`, 
+			`score`, 
+			`comment_time`, 
+			`parent_id`,
+			`app_id`,
+			`user_name`
+		)
+		values
+		(
+			#{userId}, 
+			#{appVersionId}, 
+			#{content}, 
+			#{score}, 
+			#{commentTime}, 
+			#{parentId},
+			#{appId},
+			#{userName}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.appCenter.entity.AppCommentInfoEntity">
+		update app_comment_info 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="appVersionId != null">`app_version_id` = #{appVersionId}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="score != null">`score` = #{score}, </if>
+			<if test="commentTime != null">`comment_time` = #{commentTime}, </if>
+			<if test="parentId != null">`parent_id` = #{parentId}</if>
+		</set>
+		where comment_id = #{commentId}
+	</update>
+	
+	<delete id="delete">
+		delete from app_comment_info where comment_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from app_comment_info where comment_id in 
+		<foreach item="commentId" collection="array" open="(" separator="," close=")">
+			#{commentId}
+		</foreach>
+	</delete>
+
+</mapper>

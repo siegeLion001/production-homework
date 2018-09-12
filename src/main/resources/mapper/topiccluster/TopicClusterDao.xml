@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.topiccluster.dao.TopicClusterDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.topiccluster.entity.TopicClusterEntity" id="topicClusterMap">
+        <result property="id" column="id"/>
+        <result property="homeworkId" column="homework_id"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="bNum" column="b_num"/>
+        <result property="bScore" column="b_score"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.topiccluster.entity.TopicClusterEntity">
+		select * from topic_cluster where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.topiccluster.entity.TopicClusterEntity">
+		select * from topic_cluster
+		<where>
+			<if test="homeworkId !=null">
+				and homework_id = #{homeworkId}
+			</if>
+			<if test="type !=null and type !=''">
+				and `type` = #{type}
+			</if>
+			<if test="bNum !=null and bNum !=''">
+				and b_num = #{bNum}
+			</if>
+
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx}+0 ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from topic_cluster 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.topiccluster.entity.TopicClusterEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into topic_cluster
+		(
+			`homework_id`, 
+			`type`, 
+			`content`, 
+			`b_num`, 
+			`b_score`
+		)
+		values
+		(
+			#{homeworkId}, 
+			#{type}, 
+			#{content}, 
+			#{bNum}, 
+			#{bScore}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.topiccluster.entity.TopicClusterEntity">
+		update topic_cluster 
+		<set>
+			<if test="homeworkId != null">`homework_id` = #{homeworkId}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="bNum != null">`b_num` = #{bNum}, </if>
+			<if test="bScore != null">`b_score` = #{bScore}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from topic_cluster where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from topic_cluster where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

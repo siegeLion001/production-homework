@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.property.dao.PropertyDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.property.entity.PropertyEntity" id="propertyMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    
+	<!-- 添加标段时下拉框显示标段属性信息 -->
+	<select id="findAll"  resultType="com.lhh.modules.property.entity.PropertyEntity">
+		select * from property 
+	</select>
+	
+	<select id="queryObject" resultType="com.lhh.modules.property.entity.PropertyEntity">
+		select * from property where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.property.entity.PropertyEntity">
+		select * from property
+		<where>
+			<choose>
+				<when test="type != null and type.trim() != ''">
+					type = #{type}
+				</when>
+				<otherwise>
+					type in(0,1)
+				</otherwise>
+			</choose>
+			<if test="name != null and name.trim() != ''">
+				and `name` like concat('%',#{name},'%')
+			</if> 
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from property 
+		<where>
+			<choose>
+				<when test="type != null and type.trim() != ''">
+					type = #{type}
+				</when>
+				<otherwise>
+					type in(0,1)
+				</otherwise>
+			</choose>
+			<if test="name != null and name.trim() != ''">
+				and `name` like concat('%',#{name},'%')
+			</if> 
+		</where> 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.property.entity.PropertyEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into property
+		(
+			`code`, 
+			`name`, 
+			`type`, 
+			`change_flag`, 
+			`create_time`
+		)
+		values
+		(
+			#{code}, 
+			#{name}, 
+			#{type}, 
+			#{changeFlag}, 
+			#{createTime}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.property.entity.PropertyEntity">
+		update property 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from property where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from property where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<select id="findNumber"  resultType="java.lang.String">
+		<!-- select group_concat(code separator '-') as number from property
+		 where id in
+		 <foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach> -->
+		
+		select group_concat(code separator '-') as number from 
+		(
+		<foreach collection="array" item="id" index="index" open="(" close=")" separator="union all"> 
+  				select code from property where id = #{id}
+  		</foreach>
+  		) as a
+	</select>
+	
+	
+	
+	<select id="getPlantId" resultType="int">
+		SELECT p.id FROM `property` p,salesman sm 
+		where sm.plantId = p.id  and sm.userId = #{id};
+	</select>
+	
+	<!--获取标段价格  -->
+	<select id="getPrice" resultType="String">
+		select name from property where type = 3
+	</select>
+	
+	<!-- 根据类型查询 -->
+	<select id="findListByType"  resultType="com.lhh.modules.property.entity.PropertyEntity">
+		select * from property 
+              WHERE
+					type = #{type}
+	</select>
+	<!-- 根据类型名称查对应的code -->
+	<select id="getCodeByType" resultType="com.lhh.modules.property.entity.PropertyEntity">
+		select * from property where code = #{numberType} and type = 0
+	</select>
+	
+	<!-- 根据区域名称查对应的code -->
+	<select id="getCodeByArea" resultType="com.lhh.modules.property.entity.PropertyEntity">
+		select * from property where code = #{numberArea} and type = 1
+	</select>
+	<!--根据车间名称查询对应的  ID-->
+	<select id="getCodeByPlant" resultType="com.lhh.modules.property.entity.PropertyEntity">	
+		select * from property where code = #{plant} and type = 2
+	</select>
+		
+	<!--查询车间code  -->
+	<select id = "getPlantCode" resultType="String">	
+		select code from property where id = #{id} and type = 2
+	</select>
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classtaskfeedback.dao.ClassTaskFeedbackDao">
+	<resultMap id="avgDataMap" type="java.util.Map">
+		<result column="avg_difficulty" property="avgDifficulty"/>
+		<result column="avg_workLoad" property="avgWorkLoad"/>
+		<result column="avg_use_time" property="avgUseTime"/>
+		<result column="total_count" property="totalCount"/>
+		<result column="fail_ratio" property="failRatio"/>
+		<result column="pass_ratio" property="passRatio"/>
+		<result column="well_ratio" property="wellRatio"/>
+		<result column="greate_ratio" property="greateRatio"/>
+	</resultMap>
+	<!-- 任务量  难易程度  平均用时  任务反馈总人数 统计  -->
+	<select id="queryAvgData" resultMap="avgDataMap">
+		select round(avg(difficulty)) as avg_difficulty,round(avg(workLoad)) as avg_workLoad,round(avg(use_time)) as avg_use_time,count(*) as total_count
+		from class_task_feedback
+		<where>
+			<if test="topId != null and topId !=''">
+				and top_id =#{topId}
+			</if>
+			<if test="classId != null and classId !=''">
+				and class_id =#{classId}
+			</if>
+		</where>
+	</select>
+	<!-- 教师点评  优秀/良好/及格/不合格 百分比统计 -->
+	<select id="queryRemark" resultMap="avgDataMap">
+		select round(sum(great_count)*100/sum(totalCount)) as greate_ratio,round(sum(well_count)*100/sum(totalCount)) as well_ratio,round(sum(pass_count)*100/sum(totalCount)) as pass_ratio, round(sum(fail_count)*100/sum(totalCount)) as fail_ratio from (
+		select 0 as great_count, count(*) as totalCount , 0 as well_count, 0 as pass_count, 0 as fail_count from class_task_feedback
+		<where>
+			<if test="topId !=null and topId !=''">
+				and top_id =#{topId}
+			</if>
+			<if test="classId !=null and classId !=''">
+				and class_id =#{classId}
+			</if>
+		</where>
+		union
+		select count(*) as great_count, 0 as tatalCount, 0 as well_count, 0 as pass_count, 0 as fail_count from class_task_feedback
+		where assess = 1
+		<if test="topId !=null and topId !=''">
+			and top_id =#{topId}
+		</if>
+		<if test="classId !=null and classId !=''">
+			and class_id =#{classId}
+		</if>
+		union
+		select 0 as great_count, 0 as tatalCount, count(*) as well_count, 0 as pass_count, 0 as fail_count from class_task_feedback
+		where assess = 2
+		<if test="topId !=null and topId !=''">
+			and top_id =#{topId}
+		</if>
+		<if test="classId !=null and classId !=''">
+			and class_id =#{classId}
+		</if>
+		union
+		select 0 as great_count, 0 as tatalCount, 0 as well_count, count(*) as pass_count, 0 as fail_count from class_task_feedback
+		where assess = 3
+		<if test="topId !=null and topId !=''">
+			and top_id =#{topId}
+		</if>
+		<if test="classId !=null and classId !=''">
+			and class_id =#{classId}
+		</if>
+		union
+		select 0 as great_count, 0 as tatalCount, count(*) as well_count, 0 as pass_count, count(*) as fail_count from class_task_feedback
+		where assess = 4
+		<if test="topId !=null and topId !=''">
+			and top_id =#{topId}
+		</if>
+		<if test="classId !=null and classId !=''">
+			and class_id =#{classId}
+		</if>
+		)as tmp
+	</select>
+
+</mapper>

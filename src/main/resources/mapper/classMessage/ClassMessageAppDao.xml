@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classMessage.dao.ClassMessageDao">
+
+	<resultMap type="java.util.Map" id="appMap">
+		<result property="msgId" column="msg_id"/>
+		<result property="classId" column="class_id"/>
+		<result property="authId" column="auth_id"/>
+		<result property="targetId" column="target_id"/>
+		<result property="message" column="message"/>
+		<result property="semester" column="semester"/>
+		<result property="parentId" column="parent_id"/>
+		<result property="createTime" column="create_time"/>
+	</resultMap>
+
+	<select id="queryMsgList" resultType="com.lhh.modules.classMessage.domain.ClassMessageVo">
+		select * from class_message
+		<where>
+			<if test="classId !=null and classId !=''">
+				and class_id =#{classId}
+			</if>
+			<if test="parentId !=null and parentId !=''">
+				and parent_id =#{parentId}
+			</if>
+			<if test="authId !=null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="targetId !=null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+			<if test="message !=null and message !=''">
+				and message =#{message}
+			</if>
+			<if test="semester !=null and semester !=''">
+				and semester =#{semester}
+			</if>
+			<if test="createTimeStart !=null and createTimeStart !=''">
+				and create_time &gt;= #{createTimeStart}
+			</if>
+			<if test="createTimeEnd !=null and createTimeEnd !=''">
+				and create_time &lt;= #{createTimeEnd}
+			</if>
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by msg_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	<select id="queryVo4ListNotParent" resultType="com.lhh.modules.classMessage.domain.ClassMessageVo">
+		select * from class_message
+		where parent_id is null
+			  and target_id !=auth_id
+			<if test="classId !=null and classId !=''">
+				and class_id =#{classId}
+			</if>
+			<if test="authId !=null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="targetId !=null and targetId !=''">
+				and target_id =#{targetId}
+			</if>
+	</select>
+<!--************************************************************************************************************************************-->
+	<select id="msgAndAppraisalList" resultType="com.lhh.modules.classMessage.domain.MsgAndAppraisalVo">
+		select apr_id as id, auth_id, target_id, appraisal as content, state, create_time, parent_id,class_id from class_appraisal
+		where auth_id = #{authId}
+		and parent_id is null
+		union
+		select msg_id as id, auth_id, target_id,message as content, 0 as state,create_time, parent_id,class_id from class_message
+		where auth_id=#{authId}
+		and parent_id is null
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by create_time desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="msgAndAppraisalCount" resultType="int">
+		select sum(count) from(
+		select count(*) as count from class_appraisal
+		where auth_id = #{authId}
+		and parent_id is null
+		union
+		select count(*) as count  from class_message
+		where auth_id=#{authId}
+		and parent_id is null
+		) as tmp
+	</select>
+
+	<select id="msgList2Child" resultType="com.lhh.modules.classMessage.domain.MsgAndAppraisalVo">
+		select msg_id as id, auth_id, target_id,message as content, 0 as state,create_time, parent_id,class_id from class_message
+		where auth_id=#{authId}
+		and parent_id=#{parentId}
+		order by create_time asc
+	</select>
+
+</mapper>

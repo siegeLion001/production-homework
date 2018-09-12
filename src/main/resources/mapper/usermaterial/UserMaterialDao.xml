@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.usermaterial.dao.UserMaterialDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.usermaterial.entity.UserMaterialEntity" id="userMaterialMap">
+        <result property="userMaterialId" column="user_material_id"/>
+        <result property="tchId" column="tch_id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="bookName" column="book_name"/>
+        <result property="subject" column="subject"/>
+        <result property="grade" column="grade"/>
+        <result property="classId" column="class_id"/>
+    </resultMap>
+
+    <select id="queryObject" resultType="com.lhh.modules.usermaterial.entity.UserMaterialEntity">
+		select * from user_material where user_material_id = #{value}
+	</select>
+
+    <select id="queryList" resultType="com.lhh.modules.usermaterial.entity.UserMaterialEntity">
+        select * from user_material
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by user_material_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryTotal" resultType="int">
+		select count(*) from user_material 
+	</select>
+
+    <insert id="save" parameterType="com.lhh.modules.usermaterial.entity.UserMaterialEntity" useGeneratedKeys="true"
+            keyProperty="userMaterialId">
+		insert into user_material
+		(
+			`tch_id`, 
+			`book_id`, 
+			`book_name`, 
+			`subject`, 
+			`grade`, 
+			`class_id`
+		)
+		values
+		(
+			#{tchId}, 
+			#{bookId}, 
+			#{bookName}, 
+			#{subject}, 
+			#{grade}, 
+			#{classId}
+		)
+	</insert>
+
+    <update id="update" parameterType="com.lhh.modules.usermaterial.entity.UserMaterialEntity">
+        update user_material
+        <set>
+            <if test="tchId != null">`tch_id` = #{tchId},</if>
+            <if test="bookId != null">`book_id` = #{bookId},</if>
+            <if test="bookName != null">`book_name` = #{bookName},</if>
+            <if test="subject != null">`subject` = #{subject},</if>
+            <if test="grade != null">`grade` = #{grade},</if>
+            <if test="classId != null">`class_id` = #{classId}</if>
+        </set>
+        where user_material_id = #{userMaterialId}
+    </update>
+
+    <delete id="delete">
+		delete from user_material where user_material_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from user_material where user_material_id in
+        <foreach item="userMaterialId" collection="array" open="(" separator="," close=")">
+            #{userMaterialId}
+        </foreach>
+    </delete>
+
+</mapper>

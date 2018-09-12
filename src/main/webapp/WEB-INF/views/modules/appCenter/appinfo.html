@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>应用信息表</title>
+<#include "/header.html">
+<link rel="stylesheet" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+<script src="${request.contextPath}/statics/libs/ajaxupload.js?_${.now?long}"></script>
+  <style>
+    .upload_warp_img_div_del {
+      position: absolute;
+      top: 6px;
+      width: 16px;
+      right: 4px;
+    }
+
+    .upload_warp_img_div_top {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 30px;
+      background-color: rgba(0, 0, 0, 0.4);
+      line-height: 30px;
+      text-align: left;
+      color: #fff;
+      font-size: 12px;
+      text-indent: 4px;
+    }
+
+    .upload_warp_img_div_text {
+      white-space: nowrap;
+      width: 80%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .upload_warp_img_div img {
+      max-width: 100%;
+      max-height: 100%;
+      vertical-align: middle;
+    }
+
+    .upload_warp_img_div {
+      position: relative;
+      height: 100px;
+      width: 120px;
+      border: 1px solid #ccc;
+      margin: 0px 30px 10px 0px;
+      float: left;
+      line-height: 100px;
+      display: table-cell;
+      text-align: center;
+      background-color: #eee;
+      cursor: pointer;
+    }
+
+    .upload_warp_img {
+      border-top: 1px solid #D2D2D2;
+      padding: 14px 0 0 14px;
+      overflow: hidden
+    }
+
+    .upload_warp_text {
+      text-align: left;
+      margin-bottom: 10px;
+      padding-top: 10px;
+      text-indent: 14px;
+      border-top: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .upload_warp_right {
+      float: left;
+      width: 57%;
+      margin-left: 2%;
+      height: 100%;
+      border: 1px dashed #999;
+      border-radius: 4px;
+      line-height: 130px;
+      color: #999;
+    }
+
+    .upload_warp_left img {
+      margin-top: 32px;
+    }
+
+    .upload_warp_left {
+      float: left;
+      width: 40%;
+      height: 100%;
+      border: 1px dashed #999;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .upload_warp {
+      margin: 14px;
+      height: 130px;
+    }
+
+    .upload {
+      border: 1px solid #ccc;
+      background-color: #fff;
+      width: 650px;
+      box-shadow: 0px 1px 0px #ccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div v-show="showList">
+		<div class="grid-btn">
+			<#if shiro.hasPermission("appinfo:save")>
+            <a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;创建应用</a>
+			</#if>
+			<#if shiro.hasPermission("appinfo:update")>
+            <a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改信用信息</a>
+			</#if>
+			<#if shiro.hasPermission("appinfo:delete")>
+            <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+			</#if>
+			客户端：
+			<select v-model="q.client">
+			  <option value ="1">教师端</option>
+			  <option value ="2">学生端</option>
+			</select>
+			<a class="btn btn-default" @click="query">查询</a>
+		</div>
+	    <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>
+    </div>
+    
+    <div v-show="!showList" class="panel panel-default">
+		<div class="panel-heading">{{title}}</div>
+		<form id = "form" name="form" class="form-horizontal">
+		    <div class="form-group">
+			   	<div class="col-sm-2 control-label">客户端</div>
+			   	<div class="col-sm-10">
+			      <input  type="radio" checked="checked" name="client" value="1" v-model="appInfo.client"/>教师端
+			      <input  type="radio"  name="client" value="2" v-model="appInfo.client"/>学生端
+			    </div>
+			</div>
+		    <div class="form-group">
+			   	<div class="col-sm-2 control-label">应用名称</div>
+			   	<div class="col-sm-10">
+			      <input type="text" class="form-control" v-model="appInfo.appName" placeholder="应用名称"/>
+			    </div>
+			</div>
+			<div class="form-group">
+			   	<div class="col-sm-2 control-label">应用简介</div>
+			   	<div class="col-sm-10">
+			   	<textarea class="form-control" v-model="appInfo.introduce" placeholder="应用简介"></textarea>
+			    </div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label">应用标签</div>
+				<div class="col-sm-10">
+				    <lable  v-for="lable in lableList" class="checkbox-inline">
+						<template v-if="lable.ifC==1">
+ 							<input type="checkbox" :value="lable.lableId" v-bind="lable.lableId" @click="deleteLable(lable.lableId)" checked v-for="appInfo.lableIdList"/>{{lable.lableName}} 
+ 						</template>
+						<template v-if="lable.ifC !=1">
+  							<input type="checkbox" :value="lable.lableId" v-bind="lable.lableId" @click="saveLable(lable.lableId)" v-for="appInfo.lableIdList"/>{{lable.lableName}} 
+ 						</template>  
+					</lable>
+				</div>
+			</div>
+	        <div class="form-group">
+	            <div class="col-sm-2 control-label">上架时间</div>
+				<div class="col-sm-10">
+			        <input type="date" class="form-control" v-model="appInfo.upTime">
+                </div>
+			</div>
+	        <div class="form-group">
+	            <div class="col-sm-2 control-label">下架时间</div>
+				<div class="col-sm-10">
+			        <input type="date" class="form-control" v-model="appInfo.downTime">
+                </div>
+			</div>
+			<div class="form-group">
+			      <div class="col-sm-2 control-label">上传展示图</div>
+			      <div class="col-sm-10">
+	                  <div class="upload_warp_left" @click="fileClick">
+					     <img src="/swagger/images/upload.png">
+					  </div>
+				  </div>
+			      <div class="col-sm-30 clearfix">
+				      <input @change="fileChange($event)" type="file" id="upload_file" multiple style="display: none"/>
+					  <div class="upload_warp_img_div" v-for="(item,index) in appInfo.imgList">
+			              <div class="upload_warp_img_div_top">
+			           	      <img id="img" src="/swagger/images/del.png" class="upload_warp_img_div_del" @click="fileDel(index)"/>
+			              </div>
+			              <img :src="item">
+				      </div>
+				  </div>
+	         </div> 
+	  	 	<div class="form-group">
+				    <div class="col-sm-2 control-label">上传图标</div>
+					<div class="col-sm-10">
+			        	<form class="container" enctype="multipart/form-data" method="post" id='formBox' name="form"> 
+			        	    <input type="text" id="cropedBigImg"  class="form-control" v-model="appInfo.picPath" readonly placeholder="图片路径"/>
+	                    	<input type="file" id="chooseImage" name="file" value="选择图片">
+	            			<br/>
+	            			<img id="image" value='custom'  alt="" data-address=''/>
+	                    </form>
+	                </div>
+	        </div> 
+	     <div class="form-group" id="consoleDlg">
+	     </div>
+			<div class="form-group" align="center">
+				<div class="col-sm-10">
+				<input type="button" class="btn btn-primary" @click="upload" value="确定"/>
+				&nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<script src="${request.contextPath}/statics/libs/vue.min.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/js/modules/appCenter/appinfo.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/plugins/layui/layui.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/plugins/layui/lay/lib/jquery.js?_${.now?long}"></script>
+</body>
+</html>

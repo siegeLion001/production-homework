@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.topiccluster.dao.TopicClusterDao">
+
+    <delete id="delete4Map" parameterType="java.util.Map">
+        delete from topic_cluster
+        <where>
+            <if test="homeworkId !=null">
+                and homework_id = #{homeworkId}
+            </if>
+        </where>
+    </delete>
+
+    <select id="queryList4Vo" resultType="com.lhh.modules.topiccluster.domain.TopicClusterVo">
+        select * from topic_cluster
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="bNum !=null and bNum !=''">
+                and b_num =#{bNum}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx}+0 ${order}
+            </when>
+            <otherwise>
+                order by b_num asc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+</mapper>

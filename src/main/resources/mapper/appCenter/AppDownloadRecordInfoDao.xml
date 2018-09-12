@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.appCenter.dao.AppDownloadRecordInfoDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.appCenter.entity.AppDownloadRecordInfoEntity" id="appDownloadRecordInfoMap">
+        <result property="recordId" column="record_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="appVersionId" column="app_version_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="appId" column="app_id"/>
+        <result property="deleteYn" column="delete_yn"/>
+        <result property="userName" column="user_name"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.appCenter.entity.AppDownloadRecordInfoEntity">
+		select * from app_download_record_info where delete_yn = 'N' and record_id = #{value} 
+	</select>
+
+	<select id="queryList" resultType="Map" parameterType="Map">
+		select 
+		a.record_id,
+		a.create_time,
+		a.user_name,
+		b.app_name ,
+		c.app_version 
+		from app_download_record_info a LEFT JOIN app_info b ON a.app_id =b.app_id LEFT JOIN app_version_info c ON a.app_version_id = c.app_version_id
+		where  a.delete_yn = 'N'
+		<if test="appName != null and appName != ''">
+		    and b.app_name like CONCAT('%',#{appName},'%')
+		</if>
+		<if test="startTime != null and startTime != ''">
+		    and  DATE_FORMAT(a.create_time,'%Y-%m-%d') <![CDATA[>=]]> #{startTime}
+		</if>
+		<if test="endTime != null and endTime != ''">
+		    and DATE_FORMAT(a.create_time,'%Y-%m-%d') <![CDATA[<=]]> #{endTime}
+		</if>
+		<if test="client != null and client != ''">
+		    and b.client= #{client}
+		</if>
+		<if test="type != null and type != ''">
+		    and a.type= #{type}
+		</if>
+		
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by a.record_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from app_download_record_info where delete_yn = 'N'
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.appCenter.entity.AppDownloadRecordInfoEntity" useGeneratedKeys="true" keyProperty="recordId">
+		insert into app_download_record_info
+		(
+			`user_id`, 
+			`app_version_id`, 
+			`create_time`,
+			`app_id`,
+			`delete_yn`,
+			`user_name`,
+			`type`
+			
+		)
+		values
+		(
+			#{userId}, 
+			#{appVersionId}, 
+			#{createTime},
+			#{appId},
+			#{deleteYn},
+			#{userName},
+			#{type}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.appCenter.entity.AppDownloadRecordInfoEntity">
+		update app_download_record_info 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="appVersionId != null">`app_version_id` = #{appVersionId}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}</if>
+		</set>
+		where record_id = #{recordId} 
+	</update>
+	
+	<update id="delete" parameterType="Map">
+		update app_download_record_info
+		set delete_yn = 'Y'
+		 where app_version_id = #{appVersionId} and user_id = #{userId}
+	</update>
+	
+	<delete id="deleteBatch">
+		update app_download_record_info
+		set delete_yn = 'Y'
+		where record_id in 
+		<foreach item="recordId" collection="array" open="(" separator="," close=")">
+			#{recordId}
+		</foreach>
+	</delete>
+ 	<select id="queryTotalForApp" resultType="int">
+		select count(*) from app_download_record_info where user_id = #{userId} and app_version_id =#{appVersionId}
+	</select>
+	<update id="updateDeleteYn" parameterType="Map">
+		update app_download_record_info
+		set delete_yn = 'N'
+		 where app_version_id = #{appVersionId} and user_id = #{userId}
+	</update>
+	
+</mapper>

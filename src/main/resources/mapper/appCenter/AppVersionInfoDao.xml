@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.appCenter.dao.AppVersionInfoDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.appCenter.entity.AppVersionInfoEntity" id="appVersionInfoMap">
+        <result property="appVersionId" column="app_version_id"/>
+        <result property="appId" column="app_id"/>
+        <result property="appVersion" column="app_version"/>
+        <result property="appSize" column="app_size"/>
+        <result property="appPath" column="app_path"/>
+        <result property="createTime" column="create_time"/>
+        <result property="deleteYn" column="delete_yn"/>
+        <result property="packageName" column="package_name"/>
+        <result property="introduce" column="introduce"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.appCenter.entity.AppVersionInfoEntity">
+		select * from app_version_info where app_version_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.appCenter.entity.AppVersionInfoEntity">
+		select * from app_version_info where  delete_yn = 'N'
+		<if test="appId != null and appId != ''">
+		and app_id = #{appId}
+		</if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by app_version_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int" >
+		select count(*) from app_version_info  where  delete_yn = 'N'
+	   <if test="appId != null and appId != ''">
+		and app_id = #{appId} 
+		</if>
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.appCenter.entity.AppVersionInfoEntity" useGeneratedKeys="true" keyProperty="appVersionId">
+		insert into app_version_info
+		(
+			`app_id`, 
+			`app_version`, 
+			`app_size`, 
+			`app_path`, 
+			`create_time`, 
+			`delete_yn`,
+			`introduce`
+		)
+		values
+		(
+			#{appId}, 
+			#{appVersion}, 
+			#{appSize}, 
+			#{appPath}, 
+			#{createTime}, 
+			'N',
+			#{introduce}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.appCenter.entity.AppVersionInfoEntity">
+		update app_version_info 
+		<set>
+			<if test="appId != null">`app_id` = #{appId}, </if>
+			<if test="appVersion != null">`app_version` = #{appVersion}, </if>
+			<if test="appSize != null">`app_size` = #{appSize}, </if>
+			<if test="appPath != null">`app_path` = #{appPath}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="deleteYn != null">`delete_yn` = #{deleteYn},</if>
+			<if test="deleteYn != null">`introduce` = #{introduce}</if>
+		</set>
+		where app_version_id = #{appVersionId}
+	</update>
+	<update id="delete" >
+		update app_version_info 
+		set delete_yn ='Y'
+		where app_version_id = #{appVersionId}
+	</update>
+	<update id="deleteBatch" >
+		update app_version_info 
+		set delete_yn ='Y'
+		where app_version_id in 
+		<foreach item="appVersionId" collection="array" open="(" separator="," close=")">
+			#{appVersionId}
+		</foreach>
+	</update>
+	
+<!-- 	<delete id="delete">
+		delete from app_version_info where app_version_id = #{value}
+	</delete> -->
+	
+<!-- 	<delete id="deleteBatch">
+		delete from app_version_info where app_version_id in 
+		<foreach item="appVersionId" collection="array" open="(" separator="," close=")">
+			#{appVersionId}
+		</foreach>
+	</delete> -->
+	<select id="getApkVersion" parameterType="Map" resultMap="appVersionInfoMap">
+	    select 
+		    app_id,
+		    app_version_id,
+		    app_version,
+		    app_size,
+		    package_name,
+		    create_time,
+		    introduce 
+		    FROM app_version_info 
+	    WHERE app_version_id 
+	    IN(select MAX(app_version_id) AS app_version_id FROM app_version_info WHERE FIND_IN_SET(package_name,#{packageName})  GROUP BY app_id)
+	</select>
+   
+</mapper>

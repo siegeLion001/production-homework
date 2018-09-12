@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.homework.dao.HomeworkDao">
+
+    <resultMap id="completeMap" type="java.util.Map">
+        <result property="unsubStu" column="unsub_stu"/>
+        <result property="subStu" column="sub_stu"/>
+        <result property="delqyStu" column="delqy_stu"/>
+    </resultMap>
+    <resultMap id="typeMap" type="java.util.Map">
+        <result property="type" column="type"/>
+        <result property="typeCount" column="typeCount"/>
+    </resultMap>
+    <resultMap id="stuSubmitCountMap" type="java.util.Map">
+        <result property="stuId" column="stu_id"/>
+        <result property="unSubmit" column="unSubmit"/>
+        <result property="submit" column="submit"/>
+        <result property="delaySubmit" column="delaySubmit"/>
+    </resultMap>
+    <resultMap id="stuReportMap" type="java.util.Map">
+        <result property="rank" column="rank"/>                <!-- 排名 -->
+        <result property="totalScore" column="totalScore"/> <!--总分-->
+        <result property="correct" column="correct"/> <!--订正-->
+        <result property="stuId" column="stu_id"/>   <!-- 学生id-->
+        <result property="percent" column="percent"/> <!--得分率 -->
+    </resultMap>
+
+    <select id="queryObjectVo" resultType="com.lhh.modules.homework.domain.HomeworkVo">
+		select * from homework where id = #{value}
+	</select>
+
+    <select id="queryContent" resultType="com.lhh.modules.homework.domain.HomeworkVo">
+		select content,answer_card
+		 from homework where id = #{value}
+	</select>
+
+    <select id="queryList4Map" resultType="com.lhh.modules.homework.domain.InsertHomeWorkVo">
+        select * from homework
+        <where>
+            <if test="state != null and state !=''">
+                and state = #{state}
+            </if>
+            <if test="tchId != null and tchId !=''">
+                and tch_id = #{tchId}
+            </if>
+            <if test="title != null and title !=''">
+                and title LIKE CONCAT('%',#{title},'%')
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by release_time desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    <select id="queryTotal4Map" resultType="Integer">
+        select count(*) from homework
+        <where>
+            <if test="state != null and state !=''">
+                and state = #{state}
+            </if>
+            <if test="tchId != null and tchId !=''">
+                and tch_id = #{tchId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by publish_time desc
+            </otherwise>
+        </choose>
+
+    </select>
+
+
+    <!--一段时间内学生作业提交状态查询-->
+    <select id="queryComplete4Tch" resultMap="completeMap">
+		select  round(sum(tm.unsub)*100/sum(tm.allPeople),1) as unsub_stu,
+				round(sum(tm.sub)*100/sum(tm.allPeople),1) as sub_stu ,
+				round(sum(tm.delay)*100/sum(tm.allPeople),1) as delqy_stu
+		from
+		(
+		select count(*) as allPeople, 0 as unsub, 0 as sub, 0 as delay from stu_homework s
+		left join homework h on h.id = s.homework_id
+		where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+		union
+		select 0 as allPeople, sum(1) as unsub, 0 as sub, 0 as delay from stu_homework s
+		left join homework h on h.id = s.homework_id
+		where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+            and s.submit_time is null
+		UNION
+		select 0 as allPeople, 0 as unsub, sum(1) as sub, 0 as delay from stu_homework s
+		left join homework h on h.id = s.homework_id
+		where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+            and s.submit_time &lt;=h.finish_time
+		UNION
+		select 0 as allPeople, 0 as unsub, 0 as sub, sum(1) as delay from stu_homework s
+		left join homework h on h.id = s.homework_id
+		where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+            and s.submit_time &gt;=h.finish_time
+		) tm
+
+	</select>
+    <select id="queryHomeworkCount4Type" resultMap="typeMap">
+        select count(*) as typeCount, `type` from homework
+        <where>
+            <if test="tchId !=null and tchId !=''">
+                and tch_id =#{tchId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and class_ids like concat('%',#{classId},'%')
+            </if>
+            <if test="releaseTimeStart !=null and releaseTimeStart !=''">
+                and release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd !=null and releaseTimeEnd !=''">
+                and release_time &lt;=#{releaseTimeEnd}
+            </if>
+
+        </where>
+        group by `type`
+    </select>
+    <!-- xue sheng  chengji baogao chaxun  -->
+    <select id="queryStuReport2Map" resultMap="stuReportMap">
+        select tmp.*
+        FROM(
+        select @r:=@r+1 as rank, tm.totalScore, tm.correct, tm.stu_id,
+        round(tm.totalScore*100/tm.score_all,1) as percent from (
+
+        select sum(s.actual_score) totalScore, s.stu_id, SUM(st.tch_macro_status)AS correct, sum(s.s_score) as score_all
+        from (select @r:=0) b, stu_topic s
+        left join homework h on h.id = s.homework_id
+        left join stu_homework st on st.homework_id = h.id
+          and st.stu_id = s.stu_id
+        where h.tch_id = #{tchId}
+            and s.class_id= #{classId}
+            and h.release_time &lt;= #{releaseTimeEnd}
+            and h.release_time &gt;= #{releaseTimeStart}
+        GROUP BY s.stu_id
+        ORDER BY totalScore desc
+        ) tm
+        ) tmp
+        <choose>
+            <when test="order != null and order.trim() != ''">
+                order by tmp.rank ${order}
+            </when>
+            <otherwise>
+                order by tmp.rank desc
+            </otherwise>
+        </choose>
+    </select>
+    <!-- 根据老师id  发布时间段统计学生提交作业次数-->
+    <select id="queryStuSubmitCount" resultMap="stuSubmitCountMap">
+        select tmp.stu_id,
+        sum(tmp.unsub) as unSubmit ,
+        sum(tmp.sub) as submit,
+        sum(tmp.delay) as delaySubmit
+        from
+        (
+        select s.stu_id, count(*) as allPeople, 0 as unsub, 0 as sub, 0 as delay from stu_homework s
+        left join homework h on h.id = s.homework_id
+        where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+        GROUP BY s.stu_id
+        union
+        select s.stu_id, 0 as allPeople, sum(1) as unsub, 0 as sub, 0 as delay from stu_homework s
+        left join homework h on h.id = s.homework_id
+        where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+            and s.submit_time is null
+        GROUP BY s.stu_id
+        UNION
+        select s.stu_id, 0 as allPeople, 0 as unsub, sum(1) as sub, 0 as delay from stu_homework s
+        left join homework h on h.id = s.homework_id
+        where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id =#{classId}
+            and h.tch_id = #{tchId}
+            and s.submit_time &lt;=h.finish_time
+        GROUP BY s.stu_id
+        UNION
+        select s.stu_id, 0 as allPeople, 0 as unsub, 0 as sub, sum(1) as delay from stu_homework s
+        left join homework h on h.id = s.homework_id
+        where h.release_time &lt;=#{releaseTimeEnd}
+            and h.release_time &gt;=#{releaseTimeStart}
+            AND s.class_id  =#{classId}
+            and h.tch_id = #{tchId}
+            and s.submit_time &gt;=h.finish_time
+        GROUP BY s.stu_id
+        ) tmp
+        GROUP BY tmp.stu_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by submit desc
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <select id="fullScore" resultType="double">
+        select sum(s_score) from topic where homework_id = #{value}
+    </select>
+
+
+    <select id="excellentHomework" resultType="com.lhh.modules.homework.domain.ExcellentHomeworkVo">
+        SELECT
+        tmp0.class_id,
+        homework.*
+        FROM
+        homework
+        INNER JOIN ( SELECT DISTINCT homework_id,class_id FROM stu_topic_cluster WHERE stu_topic_cluster.excellent = 2 )
+        tmp0 ON homework.id = tmp0.homework_id
+        <where>
+            <if test="classId !=null and classId !=''">
+                and tmp0.class_id =#{classId}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and tch_id =#{tchId}
+            </if>
+            <if test="title !=null and title !=''">
+                and title like concat("%",#{title},"%")
+            </if>
+            <if test="subject !=null and subject !=''">
+                and subject =#{subject}
+            </if>
+            <if test="period !=null and period !=''">
+                and period =#{period}
+            </if>
+            <if test="state != null and state !=''">
+                and state = #{state}
+            </if>
+            <if test="book !=null and book !=''">
+                and book =#{book}
+            </if>
+            <if test="type !=null and type !=''">
+                and type =#{type}
+            </if>
+            <if test="delMark !=null and delMark !=''">
+                and del_mark =#{delMark}
+            </if>
+            <if test="submitTimeStart != null and submitTimeStart != ''">
+                AND submit_time &gt;= #{submitTimeStart}
+            </if>
+            <if test="submitTimeEnd != null and submitTimeEnd != ''">
+                AND submit_time &lt;= #{submitTimeEnd}
+            </if>
+            <if test="finishTimeStart != null and finishTimeStart != ''">
+                AND finish_time &gt;= #{finishTimeStart}
+            </if>
+            <if test="finishTimeEnd != null and finishTimeEnd != ''">
+                AND finish_time &lt;= #{finishTimeEnd}
+            </if>
+            <if test="releaseTimeStart != null and releaseTimeStart != ''">
+                AND release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd != null and releaseTimeEnd != ''">
+                AND release_time &lt;= #{releaseTimeEnd}
+            </if>
+            <if test="publishTimeStart != null and publishTimeStart != ''">
+                AND publish_time &gt;= #{publishTimeStart}
+            </if>
+            <if test="publishTimeEnd != null and publishTimeEnd != ''">
+                AND publish_time &lt;= #{publishTimeEnd}
+            </if>
+            <if test="readContent != null">
+                AND read_content &lt;= #{readContent}
+            </if>
+            <if test="tinyType != null">
+                AND tiny_type &lt;= #{tinyType}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="excellentHomeworkTotal" resultType="int">
+        select count(*) from (
+        SELECT
+        tmp0.class_id,
+        homework.*
+        FROM
+        homework
+        INNER JOIN ( SELECT DISTINCT homework_id,class_id FROM stu_topic_cluster WHERE stu_topic_cluster.excellent = 2 )
+        tmp0 ON homework.id = tmp0.homework_id
+        <where>
+            <if test="classId !=null and classId !=''">
+                and tmp0.class_id =#{classId}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and tch_id =#{tchId}
+            </if>
+            <if test="title !=null and title !=''">
+                and title like concat("%",#{title},"%")
+            </if>
+            <if test="subject !=null and subject !=''">
+                and subject =#{subject}
+            </if>
+            <if test="period !=null and period !=''">
+                and period =#{period}
+            </if>
+            <if test="state != null and state !=''">
+                and state = #{state}
+            </if>
+            <if test="book !=null and book !=''">
+                and book =#{book}
+            </if>
+            <if test="type !=null and type !=''">
+                and type =#{type}
+            </if>
+            <if test="delMark !=null and delMark !=''">
+                and del_mark =#{delMark}
+            </if>
+            <if test="submitTimeStart != null and submitTimeStart != ''">
+                AND submit_time &gt;= #{submitTimeStart}
+            </if>
+            <if test="submitTimeEnd != null and submitTimeEnd != ''">
+                AND submit_time &lt;= #{submitTimeEnd}
+            </if>
+            <if test="finishTimeStart != null and finishTimeStart != ''">
+                AND finish_time &gt;= #{finishTimeStart}
+            </if>
+            <if test="finishTimeEnd != null and finishTimeEnd != ''">
+                AND finish_time &lt;= #{finishTimeEnd}
+            </if>
+            <if test="releaseTimeStart != null and releaseTimeStart != ''">
+                AND release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd != null and releaseTimeEnd != ''">
+                AND release_time &lt;= #{releaseTimeEnd}
+            </if>
+            <if test="publishTimeStart != null and publishTimeStart != ''">
+                AND publish_time &gt;= #{publishTimeStart}
+            </if>
+            <if test="publishTimeEnd != null and publishTimeEnd != ''">
+                AND publish_time &lt;= #{publishTimeEnd}
+            </if>
+            <if test="readContent != null">
+                AND read_content &lt;= #{readContent}
+            </if>
+            <if test="tinyType != null">
+                AND tiny_type &lt;= #{tinyType}
+            </if>
+        </where>
+        ) tmp
+    </select>
+</mapper>

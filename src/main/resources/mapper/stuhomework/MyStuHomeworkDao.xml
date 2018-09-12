@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stuhomework.dao.StuHomeworkDao">
+    <resultMap id="stuStatMap" type="java.util.Map">
+        <result property="unpaid" column="unpaid"/>
+        <result property="made" column="made"/>
+    </resultMap>
+
+    <resultMap id="tchMacroStatusAndCount" type="java.util.Map">
+        <result property="tchMacroStatus" column="tch_macro_status"/>
+        <result property="count" column="count"/>
+    </resultMap>
+    <insert id="saveBatch" parameterType="java.util.List">
+        insert into stu_homework
+        (
+        `homework_id`,
+        `class_id`,
+        `stu_id`,
+        `stu_macro_status`,
+        `tch_macro_status`,
+        `stu_state`,
+        `tch_state`,
+        `submit_time`,
+        `back_reason`,
+        `time_keep`,
+        `evaluate`,
+        `actual_score`,
+        `analysis`,
+        `record`,
+        `reviewer_id`,
+        `evaluationer`
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.homeworkId},
+            #{item.classId},
+            #{item.stuId},
+            #{item.stuMacroStatus},
+            #{item.tchMacroStatus},
+            #{item.stuState},
+            #{item.tchState},
+            #{item.submitTime},
+            #{item.backReason},
+            #{item.timeKeep},
+            #{item.evaluate},
+            #{item.actualScore},
+            #{item.analysis},
+            #{item.record},
+            #{item.reviewerId},
+            #{item.evaluationer}
+            )
+        </foreach>
+
+    </insert>
+    <delete id="delete4Map" parameterType="java.util.Map">
+        delete from stu_homework
+        <where>
+            <if test=" homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+        </where>
+    </delete>
+    <select id="queryListByWhere" resultType="com.lhh.modules.stuhomework.domain.StuHomeworkVo">
+        SELECT
+        sthw.*,
+        hw.title,
+        hw.type,
+        hw.tiny_type,
+        hw.book,
+        hw.subject,
+        hw.period,
+        hw.remark,
+        hw.tch_id,
+        hw.content,
+        hw.read_content,
+        hw.answer_card,
+        hw.del_mark,
+        hw.correct_type,
+        hw.finish_time,
+        hw.release_time,
+        hw.publish_time,
+        hw.create_time
+        FROM stu_homework sthw
+        join homework hw on hw.id = sthw.homework_id
+        <where>
+            <if test="stuject !=null and subject !=''">
+                hw.stuject = #{stuject}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                AND sthw.stu_id = #{stuId}
+            </if>
+            <if test="reviewerId !=null and reviewerId !=''">
+                AND sthw.reviewer_id = #{reviewerId}
+            </if>
+            <if test="stuMacroStatus != null and stuMacroStatus != ''">
+                AND sthw.stu_macro_status = #{stuMacroStatus}
+            </if>
+            <if test="tchMacroStatus != null and tchMacroStatus != ''">
+                AND sthw.tch_macro_status = #{tchMacroStatus}
+            </if>
+            <if test="type != null and type != ''">
+                AND hw.type = #{type}
+            </if>
+            <if test="delMark != null and delMark != ''">
+                AND hw.del_mark = #{delMark}
+            </if>
+            <if test="correctType != null and correctType != ''">
+                AND hw.correct_type = #{correctType}
+            </if>
+            <if test="submitTimeStart != null and submitTimeStart != ''">
+                AND hw.submit_time &gt;= #{submitTimeStart}
+            </if>
+            <if test="submitTimeEnd != null and submitTimeEnd != ''">
+                AND hw.submit_time &lt;= #{submitTimeEnd}
+            </if>
+            <if test="finishTimeStart != null and finishTimeStart != ''">
+                AND hw.finish_time &gt;= #{finishTimeStart}
+            </if>
+            <if test="finishTimeEnd != null and finishTimeEnd != ''">
+                AND hw.finish_time &lt;= #{finishTimeEnd}
+            </if>
+            <if test="releaseTimeStart != null and releaseTimeStart != ''">
+                AND hw.release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd != null and releaseTimeEnd != ''">
+                AND hw.release_time &lt;= #{releaseTimeEnd}
+            </if>
+            <if test="publishTimeStart != null and publishTimeStart != ''">
+                AND hw.publish_time &gt;= #{publishTimeStart}
+            </if>
+            <if test="publishTimeEnd != null and publishTimeEnd != ''">
+                AND hw.publish_time &lt;= #{publishTimeEnd}
+            </if>
+            <if test="createTimeStart != null and createTimeStart != null">
+                AND hw.create_time &gt;= #{createTimeStart}
+            </if>
+            <if test="createTimeEnd != null and createTimeEnd != null">
+                AND hw.create_time &lt;= #{createTimeEnd}
+            </if>
+            <if test="currentTime != null and currentTime != null">
+                AND hw.release_time &lt;= #{currentTime}
+            </if>
+
+        </where>
+        order by sthw.id desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryListByWhereTotal" resultType="int">
+        SELECT count(*) FROM (
+        SELECT
+        count(*)
+        FROM stu_homework sthw
+        join homework hw on hw.id = sthw.homework_id
+        <where>
+            <if test="stuId !=null and stuId !=''">
+                AND sthw.stu_id = #{stuId}
+            </if>
+            <if test="reviewerId !=null and reviewerId !=''">
+                AND sthw.reviewer_id = #{reviewerId}
+            </if>
+            <if test="stuMacroStatus != null and stuMacroStatus != ''">
+                AND sthw.stu_macro_status = #{stuMacroStatus}
+            </if>
+            <if test="tchMacroStatus != null and tchMacroStatus != ''">
+                AND sthw.tch_macro_status = #{tchMacroStatus}
+            </if>
+            <if test="stuMacroStatus != null and stuMacroStatus != ''">
+                AND sthw.stu_macro_status = #{stuMacroStatus}
+            </if>
+            <if test="type != null and type != null">
+                AND hw.type = #{type}
+            </if>
+
+            <if test="delMark != null and delMark != ''">
+                AND hw.del_mark = #{delMark}
+            </if>
+
+            <if test="submitTimeStart != null and submitTimeStart != null">
+                AND hw.submit_time &gt;= #{submitTimeStart}
+            </if>
+            <if test="submitTimeEnd != null and submitTimeEnd != null">
+                AND hw.submit_time &lt;= #{submitTimeEnd}
+            </if>
+
+            <if test="finishTimeStart != null and finishTimeStart != null">
+                AND hw.finish_time &gt;= #{finishTimeStart}
+            </if>
+            <if test="finishTimeEnd != null and finishTimeEnd != null">
+                AND hw.finish_time &lt;= #{finishTimeEnd}
+            </if>
+
+            <if test="releaseTimeStart != null and releaseTimeStart != null">
+                AND hw.release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd != null and releaseTimeEnd != null">
+                AND sthw.release_time &lt;= #{releaseTimeEnd}
+            </if>
+
+            <if test="publishTimeStart != null and publishTimeStart != null">
+                AND sthw.publish_time &gt;= #{publishTimeStart}
+            </if>
+            <if test="publishTimeEnd != null and publishTimeEnd != null">
+                AND sthw.publish_time &lt;= #{publishTimeEnd}
+            </if>
+
+            <if test="createTimeStart != null and createTimeStart != null">
+                AND hw.create_time &gt;= #{createTimeStart}
+            </if>
+            <if test="createTimeEnd != null and createTimeEnd != null">
+                AND hw.create_time &lt;= #{createTimeEnd}
+            </if>
+            <if test="currentTime != null and currentTime != null">
+                AND hw.release_time &lt;= #{currentTime}
+            </if>
+        </where>
+        ) tmp
+    </select>
+
+    <select id="queryStuHomeworkVo" resultType="com.lhh.modules.stuhomework.domain.StuHomeworkVo">
+        SELECT
+        *
+        FROM `stu_homework` sthw
+        JOIN homework hw on hw.id = sthw.homework_id
+        <where> 1=1 
+            <if test="id != null and id != ''">
+                and  sthw.id = #{id}
+            </if>
+            <if test="homeworkId != null and homeworkId != ''">
+                and  sthw.homework_id = #{homeworkId}
+            </if>
+            <if test="stuId != null and stuId != ''">
+                and sthw.stu_id = #{stuId}
+            </if>
+            <if test="classId != null and classId != ''">
+                and sthw.class_id = #{classId}
+            </if>
+        </where>
+    </select>
+    <!-- 查询未提交 已提交 订正 延迟提交 学生 -->
+    <select id="queryStu4Map" resultType="com.lhh.modules.stuhomework.domain.StuHomeworkVo">
+        select s.*,h.type
+        from stu_homework s
+        left join homework h on h.id = s.homework_id
+        <where>
+            <if test="tchId !=null and tchId !=''">
+                and h.tch_id =#{tchId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and s.class_id =#{classId}
+            </if>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and s.homework_id =#{homeworkId}
+            </if>
+            <if test="unPunctuality !=null and unPunctuality !=''">
+                /*延时提交*/
+                and h.finish_time &lt;= s.submit_time
+            </if>
+            <if test="punctuality !=null and punctuality !=''">
+                /*准时提交*/
+                and h.finish_time &gt;=s.submit_time
+            </if>
+            <if test="stuMacroStatus !=null and stuMacroStatus !=''">
+                /*未提交*/
+                and s.stu_macro_status =#{stuMacroStatus}
+            </if>
+            <if test="tchMacroStatus !=null and tchMacroStatus !=''">
+                /*订正*/
+                and s.tch_macro_status =#{tchMacroStatus}
+            </if>
+            <if test="reviewerId !=null and reviewerId !=''">
+                /*订正人id*/
+                and s.reviewer_id =#{reviewerId}
+            </if>
+        </where>
+    </select>
+    <!--查询未提交  已提交 延迟提交 订正 学生数量-->
+    <select id="querTotal4Map" resultType="int">
+        select count(*)
+        from stu_homework s
+        left join homework h on h.id = s.homework_id
+        <where>
+            <if test="tchId !=null and tchId !=''">
+                and h.tch_id =#{tchId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and s.class_id =#{classId}
+            </if>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and s.homework_id =#{homeworkId}
+            </if>
+            <if test="unPunctuality !=null and unPunctuality !=''">
+                /*延时提交*/
+                and h.finish_time &lt;= s.submit_time
+            </if>
+            <if test="punctuality !=null and punctuality !=''">
+                /*准时提交*/
+                and h.finish_time &gt;=s.submit_time
+            </if>
+            <if test="stuMacroStatus !=null and stuMacroStatus !=''">
+                /*未提交*/
+                and s.stu_macro_status =#{stuMacroStatus}
+            </if>
+            <if test="tchMacroStatus !=null and tchMacroStatus !=''">
+                /*订正*/
+                and s.tch_macro_status =#{tchMacroStatus}
+            </if>
+            <if test="reviewerId !=null and reviewerId !=''">
+                /*订正人id*/
+                and s.reviewer_id =#{reviewerId}
+            </if>
+        </where>
+    </select>
+    <select id="queryTimeKeep4Homework" parameterType="java.util.Map" resultType="java.lang.Long">
+		select avg(time_keep)
+		from stu_homework
+		where
+		stu_macro_status = 3
+		and homework_id= #{homeworkId}
+		and class_id= #{classId}
+	</select>
+    <!-- 查询作业未交  已交人数   unpaid 未交/被打回   made 已做 /已订正   stu_state 11 未交  1 被打回   st_macro 3 已做  tch_status 5 已订正 -->
+    <select id="queryStuStat" resultMap="stuStatMap">
+        select sum(unpaid) as unpaid, sum(made) as made
+        from(
+        select count(*) unpaid, 0 as made
+        from stu_homework
+        <where>
+            <if test="homeworkId!=null and homeworkId != ''">
+                and homework_id=#{homeworkId}
+            </if>
+            <if test="classId!=null and classId != ''">
+                and class_id=#{classId}
+            </if>
+            <if test="stuState !=null and stuState != ''">
+                and stu_state=#{stuState}
+            </if>
+        </where>
+        union
+        select 0 as unpaid, count(*) made
+        from stu_homework
+        <where>
+            <if test="homeworkId!=null and homeworkId != ''">
+                and homework_id=#{homeworkId}
+            </if>
+            <if test="classId!=null and classId != ''">
+                and class_id=#{classId}
+            </if>
+            <if test="stuMacroStatus !=null and stuMacroStatus != ''">
+                and stu_macro_status=#{stuMacroStatus}
+            </if>
+            <if test="tchState !=null and tchState != ''">
+                and tch_state=#{tchState}
+            </if>
+        </where>
+        ) tmp
+    </select>
+
+    <select id="groupByTchMacroStatus" resultMap="tchMacroStatusAndCount">
+            SELECT
+            	tch_macro_status,COUNT(tch_macro_status) as count
+            FROM
+            	stu_homework
+            WHERE
+            	homework_id = #{homeworkId}
+            GROUP BY
+            	tch_macro_status
+    </select>
+
+    <select id="getActualScore" resultType="float">
+        SELECT SUM(actual_score) FROM stu_topic
+        where
+          stu_id=#{stuId}
+          and
+          homework_id=#{homeworkId}
+    </select>
+
+    <select id="numStatistics" resultType="java.util.Map">
+        SELECT
+        max( actual_score ) AS maxClass,
+        round( avg( actual_score ) ) AS avgClass,
+        round( avg( time_keep ) ) AS avgClassTime
+        FROM
+        (
+        SELECT
+        sum( sp.actual_score ) AS actual_score,
+        sh.time_keep,
+        sp.stu_id
+        FROM
+        stu_topic AS sp
+        LEFT JOIN stu_homework AS sh ON sh.stu_id = sp.stu_id
+        AND sh.homework_id = sp.homework_id
+        <where>
+            sp.homework_id = #{homeworkId}
+            AND sp.class_id = #{classId}
+        </where>
+        GROUP BY
+        sp.stu_id
+        ) AS tmp
+    </select>
+
+
+    <select id="selectAllStuId" resultType="java.lang.String">
+        SELECT DISTINCT stu_id FROM stu_homework
+        <where>
+            <if test="tchId !=null and tchId !=''">
+                and tch_id =#{tchId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and class_id =#{classId}
+            </if>
+        </where>
+    </select>
+
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update stu_homework
+            <set>
+                <if test="item.homeworkId != null">`homework_id` = #{item.homeworkId},</if>
+                <if test="item.classId != null">`class_id` = #{item.classId},</if>
+                <if test="item.stuId != null">`stu_id` = #{item.stuId},</if>
+                <if test="item.stuMacroStatus != null">`stu_macro_status` = #{item.stuMacroStatus},</if>
+                <if test="item.tchMacroStatus != null">`tch_macro_status` = #{item.tchMacroStatus},</if>
+                <if test="item.stuState != null">`stu_state` = #{item.stuState},</if>
+                <if test="item.tchState != null">`tch_state` = #{item.tchState},</if>
+                <if test="item.submitTime != null">`submit_time` = #{item.submitTime},</if>
+                <if test="item.backReason != null">`back_reason` = #{item.backReason},</if>
+                <if test="item.timeKeep != null">`time_keep` = #{item.timeKeep},</if>
+                <if test="item.evaluate != null">`evaluate` = #{item.evaluate},</if>
+                <if test="item.actualScore != null">`actual_score` = #{item.actualScore},</if>
+                <if test="item.analysis != null">`analysis` = #{item.analysis},</if>
+                <if test="item.record != null">`record` = #{item.record},</if>
+                <if test="item.reviewerId != null">`reviewer_id` = #{item.reviewerId}</if>
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+
+</mapper>

@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stuMistakeBook.dao.StuMistakeBookDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="java.util.Map" id="stuMistakeBook">
+        <result property="id" column="id"/>
+        <result property="subjctId" column="subjct_id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="sectionId" column="section_id"/>
+        <result property="stuId" column="stu_id"/>
+        <result property="topContent" column="top_content"/>
+        <result property="topAnalysis" column="top_analysis"/>
+        <result property="correctAnswer" column="correct_answer"/>
+        <result property="topType" column="top_type"/>
+        <result property="mistakeReason" column="mistake_reason"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="reserve1" column="reserve1"/>
+        <result property="isGrasp" column="is_grasp"/>
+        <result property="knowledgeId" column="knowledge_id"/>
+        <result property="classId" column="class_id"/>
+		<result property="stuTopicClusterId" column="stu_topic_cluster_id"/>
+		<result property="stuTopicId" column="stu_topic_id"/>
+    </resultMap>
+	<resultMap id="subjectInfo" type="java.util.Map">
+		<result property="subjctId" column="subjct_id"/>
+		<result property="stuId" column="stu_id"/>
+		<result property="unGraspCount" column="un_grasp_count"/>
+		<result property="graspCount" column="grasp_count"/>
+	</resultMap>
+	<resultMap id="bookInfo" type="java.util.Map">
+		<result property="subjctId" column="subjct_id"/>
+		<result property="bookId" column="book_id"/>
+		<result property="stuId" column="stu_id"/>
+		<result property="unGraspCount" column="un_grasp_count"/>
+		<result property="graspCount" column="grasp_count"/>
+	</resultMap>
+	<resultMap id="sectionInfoMap" type="java.util.Map">
+		<result property="subjctId" column="subjct_id"/>
+		<result property="bookId" column="book_id"/>
+		<result property="stuId" column="stu_id"/>
+		<result property="sectionId" column="section_id"/>
+		<result property="unGraspCount" column="un_grasp_count"/>
+		<result property="graspCount" column="grasp_count"/>
+	</resultMap>
+	<resultMap id="subjectInfoRank" type="java.util.Map">
+		<result property="stuId" column="stu_id"/>
+		<result property="classId" column="class_id"/>
+		<result property="stuRank" column="stuRank"/>
+		<result property="graspCount" column="grasp_count"/>
+	</resultMap>
+
+	<!-- 最外层 科目 待复习 查询   必传字段  stuId, subjctId  isGrasp 自己封装-->
+	<select id="querySubjectInfo" resultMap="subjectInfo">
+		select subjct_id, stu_id, sum(count1) as un_grasp_count, sum(count2) as grasp_count from
+		(
+			select subjct_id,stu_id,count(*) as count1, 0 as count2 from stu_mistake_book
+			where is_grasp = 1
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+			GROUP BY subjct_id
+
+			union
+			select subjct_id,stu_id,0 as count1, count(*) as count2 from stu_mistake_book
+			where is_grasp = 2
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+			GROUP BY subjct_id
+
+		) as tmp
+		group by subjct_id
+	</select>
+	<select id="queryRank" resultMap="subjectInfoRank">
+		select @r:=@r+1 as rank,m.* from (select @r:=0) b,
+		(
+			select stu_id,count(*) as grasp_count,class_id from stu_mistake_book
+			where is_grasp = 2
+			<if test=" classId !=null and classId !=''">
+				and class_id = #{classId}
+			</if>
+			GROUP BY stu_id
+			order by grasp_count desc, stu_id asc
+		) as m
+	</select>
+	<select id="queryRank4stu" resultMap="subjectInfoRank">
+		select m.* from
+		(
+				select @r:=@r+1 as rank, stu_id,count(*) as grasp_count from  (select @r:=0) b, stu_mistake_book
+				where is_grasp = 2
+
+					and class_id = "1"
+				group by stu_id
+
+				order by grasp_count desc,stu_id asc
+			) as m
+			<where>
+				<if test="stuId !=null and stuId !=''">
+					and stu_id = #{stuId}
+				</if>
+			</where>
+	</select>
+
+	<!-- two 查询册别信息   必传字段  stuId,subjctId, bookId  -->
+	<select id="queryBookInfo" resultMap="sectionInfoMap">
+		select tmp.subjct_id, stu_id, book_id, sum(count1) as un_grasp_count, sum(count2) as grasp_count from
+		(
+			select subjct_id,stu_id,book_id,count(*) as count1, 0 as count2 from stu_mistake_book mbook
+			where is_grasp = 1
+			<if test="bookId !=null and bookId.trim() !=''">
+				and mbook.book_id =#{bookId}
+			</if>
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and mbook.subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and mbook.stu_id =#{stuId}
+			</if>
+		union
+			select subjct_id,stu_id,book_id,0 as count1, count(*) as count2 from stu_mistake_book mbook
+			where is_grasp = 2
+			<if test="bookId !=null and bookId.trim() !=''">
+				and mbook.book_id =#{bookId}
+			</if>
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and mbook.subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and mbook.stu_id =#{stuId}
+			</if>
+		) as tmp
+	</select>
+	<!-- three 查询章节下 待复习  已掌握统计  数量统计 -->
+	<select id="querySectionInfo" resultMap="sectionInfoMap">
+		select tmp.subjct_id, tmp.book_id,tmp.stu_id, tmp.section_id,sum(un_grasp_count) un_grasp_count, sum(grasp_count) grasp_count from (
+			select subjct_id, book_id,stu_id, section_id,count(*) un_grasp_count, 0 grasp_count from stu_mistake_book mbook
+			where is_grasp = 1
+			<if test="bookId !=null and bookId.trim() !=''">
+				and book_id =#{bookId}
+			</if>
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+			<if test="nodeList !=null and nodeList.size > 0">
+				and section_id IN
+				<foreach collection="nodeList" item="item" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			group by section_id
+			union
+			select subjct_id, book_id,stu_id, section_id,0 un_grasp_count, count(*) grasp_count from stu_mistake_book mbook
+			where is_grasp = 2
+			<if test="bookId !=null and bookId.trim() !=''">
+				and book_id =#{bookId}
+			</if>
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+			<if test="nodeList !=null and nodeList.size > 0">
+				and section_id IN
+				<foreach collection="nodeList" item="item" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			group by section_id
+			) tmp
+		group by section_id
+	</select>
+	<!-- 查询bookId和 sectionId为空的 -->
+	<select id="queryList4noSection" resultMap="sectionInfoMap">
+		select tmp.subjct_id, tmp.book_id,tmp.stu_id, tmp.section_id,sum(un_grasp_count) un_grasp_count, sum(grasp_count) grasp_count from (
+			select subjct_id, book_id,stu_id, section_id,count(*) un_grasp_count, 0 grasp_count from stu_mistake_book mbook
+			where is_grasp = 1
+				and book_id is null
+				and section_id is null
+
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+
+			group by subjct_id
+			union
+			select subjct_id, book_id,stu_id, section_id,0 un_grasp_count, count(*) grasp_count from stu_mistake_book mbook
+			where is_grasp = 2
+				and book_id is null
+				and section_id is null
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+
+			group by subjct_id
+			) tmp
+		group by subjct_id
+	</select>
+	<select id="queryListByMap" resultType="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookVo">
+		select * from stu_mistake_book
+		<where>
+			<if test="bookId !=null and bookId.trim() !=''">
+				and book_id =#{bookId}
+			</if>
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+			<if test="isGrasp != null and isGrasp != ''">
+				and is_grasp = #{isGrasp}
+			</if>
+			<if test="nodeList !=null and nodeList.size > 0">
+				and section_id IN
+				<foreach collection="nodeList" item="item" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+
+		</where>
+	</select>
+
+	<select id="queryListByMap4NoSection" resultType="com.lhh.modules.stuMistakeBook.entity.StuMistakeBookVo">
+		select * from stu_mistake_book
+		where
+			 book_id is null
+			and section_id is null
+			<if test="subjctId !=null and subjctId.trim() !=''">
+				and subjct_id =#{subjctId}
+			</if>
+			<if test="stuId !=null and stuId.trim() !=''">
+				and stu_id =#{stuId}
+			</if>
+			<if test="isGrasp != null and isGrasp != ''">
+				and is_grasp = #{isGrasp}
+			</if>
+
+	</select>
+</mapper>

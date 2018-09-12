@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classAssist.dao.ClassAssistDao">
+	<select id="assustMine" resultType="com.lhh.modules.classAssist.domain.ClassAssistVo">
+		select ass.*,top.id,top.content,top.title from class_assist as ass
+		left join class_top as top on top.id = ass.top_id
+		<where>
+			<if test="targetId !=null and targetId!=''">
+				and ass.target_id= #{targetId}
+			</if>
+		</where>
+		group by ass.top_id
+		order by ass.create_time desc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+</mapper>

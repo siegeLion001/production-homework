@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.appCenter.dao.AppInfoDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.appCenter.entity.AppInfoEntity" id="appInfoMap">
+        <result property="appId" column="app_id"/>
+        <result property="appName" column="app_name"/>
+        <result property="lableIdList" column="lable_id"/>
+        <result property="score" column="score"/>
+        <result property="createTime" column="careate_time"/>
+        <result property="deleteYn" column="delete_yn"/>
+        <result property="picPath" column="pic_path"/>
+        <result property="downloadCount" column="download_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="introduce" column="introduce"/>
+        <result property="imgList" column="preview_pic_path"/>
+        <result property="client" column="client"/>
+        <result property="upTime" column="up_time"/>
+        <result property="downTime" column="down_time"/>
+        
+    </resultMap>
+    <resultMap type="com.lhh.modules.appCenter.entity.AppInfoModel" id="appInfoModelMap">
+        <result property="app_id" column="app_id"/>
+        <result property="app_name" column="app_name"/>
+        <result property="score" column="score"/>
+        <result property="pic_path" column="pic_path"/>
+        <result property="download_count" column="download_count"/>
+        <result property="comment_count" column="comment_count"/>
+        <result property="introduce" column="introduce"/>
+        <result property="app_version_id" column="app_version_id"/>
+        <result property="app_version" column="app_version"/>
+        <result property="app_size" column="app_size"/>
+        <result property="update_introduce" column="update_introduce"/>
+        <result property="apk_path" column="apk_path"/>
+        <result property="package_name" column="package_name"/>
+        <result property="client" column="client"/>
+        <result property="preview_pic_path" column="preview_pic_path"/>
+        
+    </resultMap>
+
+	<select id="queryObject" resultMap="appInfoMap">
+		select * from app_info where app_id = #{value}
+	</select>
+
+	<select id="queryList" resultMap="appInfoMap" parameterType="Map">
+		SELECT
+			a.app_id,
+			a.app_name,
+			a.score,
+			a.create_time,
+			a.pic_path,
+			a.introduce,
+			a.preview_pic_path,
+			GROUP_CONCAT( b.lable_name ) AS lableIdList,
+			a.client,
+			DATE_FORMAT(a.up_time,'%Y-%m-%d') as up_time,
+			DATE_FORMAT(a.down_time,'%Y-%m-%d') as down_time
+		FROM
+			app_info a
+			LEFT JOIN app_lable_info b ON FIND_IN_SET( b.lable_id, a.lable_id ) 
+		WHERE
+			a.delete_yn = 'N'  
+			<if test="client != null and client != ''">
+			and a.client=#{client}
+			</if>
+		GROUP BY
+		app_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by app_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from app_info 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.appCenter.entity.AppInfoEntity" useGeneratedKeys="true" keyProperty="appId">
+		insert into app_info
+		(
+			`app_name`, 
+			`lable_id`, 
+			`score`, 
+			`create_time`, 
+			`delete_yn`,
+			`pic_path`,
+			`comment_count`,
+			`download_count`,
+			`preview_pic_path`,
+			`client`,
+			`up_time`,
+			`down_time`,
+			`introduce`
+			
+		)
+		values
+		(
+			#{appName}, 
+			#{lableIdList}, 
+			#{score}, 
+			#{createTime}, 
+			#{deleteYn},
+			#{picPath},
+			0,
+			0,
+			#{imgList},
+			#{client},
+			#{upTime},
+			#{downTime},
+			#{introduce}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.appCenter.entity.AppInfoEntity">
+		update app_info 
+		<set>
+			<if test="appName != null">`app_name` = #{appName}, </if>
+			<if test="lableIdList != null and lableIdList != ''">`lable_id` = #{lableIdList}, </if>
+			<if test="score != null">`score` = #{score}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="deleteYn != null">`delete_yn` = #{deleteYn},</if>
+			<if test="picPath != null">`pic_path` = #{picPath},</if>
+			<if test="downloadCount != null and downloadCount != ''">`download_count` = download_count+#{downloadCount},</if>
+			<if test="commentCount != null and commentCount != ''">`comment_count` = comment_count+#{commentCount},</if>
+			<if test="introduce != null and introduce != ''">`introduce` = #{introduce},</if>
+			<if test="imgList != null and imgList != ''">`preview_pic_path` = #{imgList},</if>
+			<if test="client != null and client != ''">`client` = #{client},</if>
+			<if test="client != null and client != ''">`up_time` = #{upTime},</if>
+			<if test="client != null and client != ''">`down_time` = #{downTime}</if>
+		</set>
+		where app_id = #{appId}
+	</update>
+	
+	<delete id="delete">
+		delete from app_info where app_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from app_info where app_id in 
+		<foreach item="appId" collection="array" open="(" separator="," close=")">
+			#{appId}
+		</foreach>
+	</delete>
+    <select id="queryAppList" resultMap="appInfoModelMap" parameterType="Map">
+			SELECT 
+			a.app_id,
+			a.app_name,
+			a.pic_path,
+			a.score,
+			a.download_count,
+			a.introduce,
+			a.comment_count,
+			a.client,
+			a.preview_pic_path,
+			c.app_version_id,
+			c.app_version,
+			c.app_size,
+			c.introduce AS update_introduce,
+			c.app_path AS apk_path,
+			c.package_name
+	  from app_info a
+		LEFT JOIN
+		  (SELECT MAX(app_version_id)  app_version_id,app_id FROM app_version_info GROUP BY app_id) AS b ON a.app_id = b.app_id
+			RIGHT JOIN app_version_info c ON c.app_version_id = b.app_version_id
+		WHERE a.delete_yn = 'N' and a.up_time is not null
+		    and  NOW() <![CDATA[>=]]>a.up_time
+		    and NOW() <![CDATA[<=]]>a.down_time
+		<foreach collection="lables" item="item" index="index" >
+		and  FIND_IN_SET(#{item},a.lable_id) 
+		</foreach>
+		<if test="appName != null and appName != ''">
+		and  a.app_name like CONCAT('%',#{appName},'%')
+		</if>
+	    <choose>
+	        <when test="recommend != null and recommend != ''">
+	             order  by a.download_count desc ,a.create_time desc 
+	        </when>
+	        <when test="sidx != null and sidx.trim() != ''">
+	             order by ${sidx} ${order}
+	        </when>
+	        <otherwise>
+	             order by a.app_id desc
+	        </otherwise>
+	     </choose>
+			<if test="offset != null and limit != null">
+				limit #{offset}, #{limit}
+			</if>
+	</select>
+</mapper>

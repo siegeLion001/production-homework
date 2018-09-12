@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classLabel.dao.ClassLabelDao">
+
+	<select id="queryLabelList" resultType="com.lhh.modules.classLabel.entity.ClassLabelEntity">
+		select class_label.label_id, class_label.label_name from class_label
+		<where>
+			<if test="labelId !=null and labelId !=''">
+				and label_id =#{labelId}
+			</if>
+			<if test="labelName !=null and labelName !=''">
+				and label_name  =#{labelName}
+			</if>
+			<if test="createId !=null and createId != ''">
+				and `create_id`= #{createId}
+			</if>
+			<if test="type !=null and type !=''">
+				and `type` =#{type}
+			</if>
+			<if test="createTimeStart !=null and createTimeStart !=''">
+				and create_time &gt;= #{createTimeStart}
+			</if>
+			<if test="createTimeEnd !=null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+			or `create_id` is null
+			<if test="labelId !=null and labelId !=''">
+				and label_id =#{labelId}
+			</if>
+			<if test="labelName !=null and labelName !=''">
+				and label_name  =#{labelName}
+			</if>
+			<if test="type !=null and type !=''">
+				and `type` =#{type}
+			</if>
+			<if test="createTimeStart !=null and createTimeStart !=''">
+				and create_time &gt;= #{createTimeStart}
+			</if>
+			<if test="createTimeEnd !=null and createTimeEnd !=''">
+				and create_time &lt;=#{createTimeEnd}
+			</if>
+
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by create_time desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+</mapper>

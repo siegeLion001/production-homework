@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classcollection.dao.ClassCollectionDao">
+	<!-- 收藏表/成长记录与top关联表 -->
+	<select id="queryObjectByTopIdAndAuthId" resultType="com.lhh.modules.classcollection.entity.ClassCollectionEntity">
+		select * from class_collection where auth_id = #{authId} and top_id = #{topId} limit 0,1
+	</select>
+
+	<select id="queryMyCollectionTop" resultType="com.lhh.modules.classcollection.entity.ClassCollectionEntity">
+        SELECT class_top.* FROM class_collection LEFT JOIN class_top ON class_collection.top_id = class_top.id
+        WHERE class_collection.auth_id = #{authId}
+        <if test="collMark !=null and collMark !=null">
+			and coll_mark = #{collMark}
+		</if>
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="queryMyCollectionTopTotal"  resultType="int">
+		SELECT count(*) FROM class_collection LEFT JOIN class_top ON class_collection.top_id = class_top.id
+		WHERE class_collection.auth_id = #{authId}
+		<if test="collMark !=null and collMark !=null">
+			and coll_mark = #{collMark}
+		</if>
+	</select>
+
+
+
+</mapper>

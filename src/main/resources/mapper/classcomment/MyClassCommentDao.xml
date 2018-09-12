@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classcomment.dao.ClassCommentDao">
+
+    <select id="queryMyList" resultType="com.lhh.modules.classcomment.entity.ClassCommentEntity">
+        select * from class_comment
+        <where>
+            <if test="authId !=null and authId != ''">
+                AND auth_id = #{auth_id}
+            </if>
+            <if test="topId !=null and topId != ''">
+                AND top_id = #{topId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryMyTotal" resultType="int">
+        select count(*) from class_comment
+        <where>
+            <if test="authId !=null and authId != ''">
+                AND auth_id = #{auth_id}
+            </if>
+            <if test="topId !=null and topId != ''">
+                AND top_id = #{topId}
+            </if>
+        </where>
+    </select>
+    <select id="commentList" resultType="com.lhh.modules.classcomment.entity.vo.ClassCommentVo">
+        select com.*,top.content as top_content from class_comment as com
+        left join class_top as top on top.id = com.top_id
+        <where>
+            <if test="authId !=null and authId !=''">
+                and com.auth_id = #{authId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by com.${sidx} ${order}
+            </when>
+            <otherwise>
+                order by com.id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+
+    </select>
+
+
+</mapper>

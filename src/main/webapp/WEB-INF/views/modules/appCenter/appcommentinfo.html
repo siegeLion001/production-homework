@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>应用评论信息表</title>
+<#include "/header.html">
+<script>
+//获取页面传参
+function GetQueryString(name){
+var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+var r = window.location.search.substr(1).match(reg);
+if(r!=null)return unescape(r[2]); return null;
+} 	
+var appId=GetQueryString("appId");
+</script>
+  <style>
+  body{
+      font-family:"Segoe UI";
+    }
+    li{
+      list-style:none;
+    }
+    a{
+      text-decoration:none;
+    }
+    .pagination {
+        position: relative;
+
+      }
+      .pagination li{
+        display: inline-block;
+        margin:0 5px;
+      }
+      .pagination li a{
+        padding:.5rem 1rem;
+        display:inline-block;
+        border:1px solid #ddd;
+        background:#fff;
+
+        color:#0E90D2;
+      }
+      .pagination li a:hover{
+        background:#eee;
+      }
+      .pagination li.active a{
+        background:#0E90D2;
+        color:#fff;
+      }
+  </style>
+<link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div style="border-bottom-color: gray;">
+	<h3>评论列表</h3>
+	</div>
+	<div id="demo" class="form-group" style="min-height:700px;border-radius:10px;background-color:#efefef;padding:20px;">
+		<div class="control-label" >
+		    <div  v-for="(item,index) in commentList" style="margin-bottom:10px ;">
+				  <template v-if="item.parentId ==0">
+				   {{item.userName}}： {{item.content}} <br/>
+				        评分：{{item.score}}星<br/>
+				  {{item.commentTime}}<br/>
+				  <a id="reply" @click="display(index)"> 回复</a>
+					</template>
+				  <template v-if="item.parentId !=0">
+				   {{item.userName}}回复{{item.object}}： {{item.content}} <br/>
+				  {{item.commentTime}}<br/>
+					</template>
+				   <textarea :id="'index'+index" class="form-control" placeholder="回复内容" style="display:none"></textarea>
+				   <input :id="'input'+index"  type="button"  class="btn btn-primary" @click="reply(index,item.commentId,item.appVersionId)"value="确定" style="display:none"/> 
+			</div>
+		</div>
+	</div>
+</div>
+<script src="${request.contextPath}/statics/libs/vue.min.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/plugins/layui/layui.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/plugins/layui/lay/lib/jquery.js?_${.now?long}"></script>
+<script src="${request.contextPath}/statics/js/modules/appCenter/appcomment.js?_${.now?long}"></script> 
+</body>
+</html>

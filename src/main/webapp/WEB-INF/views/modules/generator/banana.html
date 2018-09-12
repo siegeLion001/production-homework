@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+    <link href="${request.contextPath}/statics/plugins/umeditor/themes/default/css/ueditor.css" type="text/css"
+          rel="stylesheet">
+    <#include "/header.html">
+    <script src="${request.contextPath}/statics/plugins/layui/layui.js?_${.now?long}"></script>
+    <!--<script type="text/javascript" charset="utf-8" src="${request.contextPath}/statics/plugins/ueditor/ueditor.parse.js"></script>-->
+    <script type="text/javascript" charset="utf-8" src="${request.contextPath}/statics/plugins/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="${request.contextPath}/statics/plugins/ueditor/ueditor.all.js"></script>
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/ueditor/lang/zh-cn/zh-cn.js"></script>
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <#if shiro.hasPermission("banana:save")>
+                <a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            </#if>
+            <#if shiro.hasPermission("banana:update")>
+                <a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+            </#if>
+            <#if shiro.hasPermission("banana:delete")>
+                <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+            </#if>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="col-sm-2 control-label">图片路径</div>
+                <div class="col-sm-10 layui-upload">
+                    <input type="text" id="uploadBanana" class="form-control" v-model="banana.url" readonly
+                           placeholder="图片路径"/>
+                    <input type="file" name="file" class="layui-upload-file" value="图片上传"/>
+                </div>
+            </div>
+            <!--<div class="form-group">
+                <div class="col-sm-2 control-label">封面</div>
+                <div class="col-sm-10">
+                    <input type="hidden" class="form-control"
+                           v-model="banana.url" placeholder="封面" />
+                </div>
+                <div class="col-sm-10 layui-upload">
+                    <div style="float:left;width: 27%;" >
+                        <img style="width:92px; height:92px;" id="pic" >
+                        <p id="picText"></p>
+                    </div>
+                    <div style="float:left; width: 31%;">
+                        <input type="file" name="file" class="layui-upload-file" value="图片上传" />
+                    </div>
+                </div>
+            </div>-->
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label"><span style="letter-spacing:28px;">状</span>态</div>
+                <div class="col-sm-10" style="margin-top: 6px;">
+                    <!--<input type="radio" class="form-control" v-model="banana.state" placeholder="状态  1,使用  2,不使用" />-->
+                    <input type="radio" v-model="banana.state" value="1" name="state"/><label>展示</label>
+                    <input type="radio" v-model="banana.state" value="2" name="state"/><label>不展示</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">图片标题</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="banana.title" placeholder="图片标题"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">连接地址</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="banana.connect" placeholder="连接地址"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label"><span style="letter-spacing:8px;">客户</span>端</div>
+                <div class="col-sm-10" style="margin-top: 6px;">
+                    <!--<input type="text" class="form-control" v-model="banana.client" placeholder="客户端  1,教师端 2,学生端 3,通用"/>-->
+                    <input type="radio" v-model="banana.client" value="1" name="client"/><label>教师端</label>
+                    <input type="radio" v-model="banana.client" value="2" name="client"/><label>学生端</label>
+                    <input type="radio" v-model="banana.client" value="3" name="client"/><label>应用中心</label>
+                    <!--<input type="radio" v-model="banana.client" value="3" name="client"/><label >通用</label>-->
+                </div>
+            </div>
+            <div class="form-group" style="margin-left: 11%">
+            <!-- 加载编辑器的容器 -->
+            <script id="container" name="content" type="text/plain">
+
+            </script>
+            </div>
+
+
+
+            <div class="form-group" style="margin-top: 10px;">
+                <div class="col-sm-2 control-label"></div>
+                <input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/generator/banana.js?_${.now?long}"></script>
+<script>
+/*setTimeout(function(){uParse('div',
+    {
+        'highlightJsUrl':'${request.contextPath}/statics/plugins/ueditor/third-party/SyntaxHighlighter/shCore.js',
+        'highlightCssUrl':'${request.contextPath}/statics/plugins/ueditor/third-party/SyntaxHighlighter/shCoreDefault.css'})
+},300);*/
+var ue = UE.getEditor('container',{
+    toolbars: [
+        ['fullscreen', 'source', 'undo', 'redo'],
+        ['bold', 'italic', 'underline', 'fontborder', 'strikethrough',
+            'superscript', 'subscript', 'removeformat',  'blockquote', 'pasteplain', 'spechars', 'searchreplace',
+            '|', 'forecolor', 'backcolor', 'insertorderedlist', 'insertunorderedlist',
+            'selectall',  '|','customstyle', 'paragraph','insertcode',
+            'fontfamily','fontsize',/*'simpleupload', 'insertimage',*/'emotion' ,'|', 'preview',
+            'horizontal', 'removeformat','|', 'date','time', '|', 'link', 'unlink', '|', 'justifyleft',
+            'justifyright','justifycenter', 'justifyjustify','rowspacingtop',
+            'rowspacingbottom','lineheight'
+        ]
+    ]
+});
+ue.ready(function() {
+    ue.setHeight(250);
+    //设置编辑器的内容
+    // ue.setContent('hello');
+    // //获取html内容，返回: <p>hello</p>
+    // var html = ue.getContent();
+    // //获取纯文本内容，返回: hello
+    // var txt = ue.getContentTxt();
+});
+</script>
+</body>
+</html>

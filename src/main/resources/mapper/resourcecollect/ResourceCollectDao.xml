@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.resourcecollect.dao.ResourceCollectDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.resourcecollect.entity.ResourceCollectEntity" id="resourceCollectMap">
+        <result property="id" column="id"/>
+        <result property="authId" column="auth_id"/>
+        <result property="authType" column="auth_type"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="subjectId" column="subject_id"/>
+        <result property="type" column="type"/>
+        <result property="difficult" column="difficult"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.resourcecollect.entity.ResourceCollectEntity">
+		select * from resource_collect where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.resourcecollect.entity.ResourceCollectEntity">
+		select * from resource_collect
+		<where>
+			<if test="authId !=null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="authType !=null and authType !=''">
+				and auth_type =#{authType}
+			</if>
+			<if test="resourceId !=null and resourceId !=''">
+				and resource_id =#{resourceId}
+			</if>
+			<if test="resourceType !=null and resourceType !=''">
+				and resource_type =#{resourceType}
+			</if>
+			<if test="createTime !=null and createTime !=''">
+				and create_time =#{createTime}
+			</if>
+			<if test="subjectId !=null and subjectId !=''">
+				and subject_id =#{subjectId}
+			</if>
+			<if test="type !=null and type !=''">
+				and type =#{type}
+			</if>
+			<if test="difficult !=null and difficult !=''">
+				and difficult =#{difficult}
+			</if>
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from resource_collect
+		<where>
+			<if test="authId !=null and authId !=''">
+				and auth_id =#{authId}
+			</if>
+			<if test="authType !=null and authType !=''">
+				and auth_type =#{authType}
+			</if>
+			<if test="resourceId !=null and resourceId !=''">
+				and resource_id =#{resourceId}
+			</if>
+			<if test="resourceType !=null and resourceType !=''">
+				and resource_type =#{resourceType}
+			</if>
+			<if test="createTime !=null and createTime !=''">
+				and create_time =#{createTime}
+			</if>
+			<if test="subjectId !=null and subjectId !=''">
+				and subject_id =#{subjectId}
+			</if>
+			<if test="type !=null and type !=''">
+				and type =#{type}
+			</if>
+			<if test="difficult !=null and difficult !=''">
+				and difficult =#{difficult}
+			</if>
+		</where>
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.resourcecollect.entity.ResourceCollectEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into resource_collect
+		(
+			`auth_id`, 
+			`auth_type`, 
+			`resource_id`, 
+			`resource_type`, 
+			`create_time`, 
+			`subject_id`, 
+			`type`, 
+			`difficult`
+		)
+		values
+		(
+			#{authId}, 
+			#{authType}, 
+			#{resourceId}, 
+			#{resourceType}, 
+			#{createTime}, 
+			#{subjectId}, 
+			#{type}, 
+			#{difficult}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.resourcecollect.entity.ResourceCollectEntity">
+		update resource_collect 
+		<set>
+			<if test="authId != null">`auth_id` = #{authId}, </if>
+			<if test="authType != null">`auth_type` = #{authType}, </if>
+			<if test="resourceId != null">`resource_id` = #{resourceId}, </if>
+			<if test="resourceType != null">`resource_type` = #{resourceType}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="subjectId != null">`subject_id` = #{subjectId}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="difficult != null">`difficult` = #{difficult}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from resource_collect where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from resource_collect where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

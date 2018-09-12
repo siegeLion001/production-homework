@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stutopic.dao.StuTopicDao">
+    <resultMap id="totalMap" type="int">
+        <id property="whetherReview" column="whetherReview"/>
+    </resultMap>
+    <resultMap id="countMap" type="java.util.Map">
+        <result property="count" column="aCount"/>
+        <result property="sNum" column="s_num"/>
+    </resultMap>
+    <resultMap id="rankMap" type="java.util.Map">
+        <result property="stuId" column="stu_id"/>
+        <result property="totalPoints" column="total_points"/>
+        <result property="classId" column="class_id"/>
+        <result property="rank" column="rank"/>
+        <result property="actualScore" column="actual_score"/>
+        <result property="scoreRatio" column="score_ratio"/>
+    </resultMap>
+    <resultMap id="scoreCountMap" type="java.util.Map">
+        <result property="fullMark" column="fullMark"/>
+        <result property="minScore" column="minScore"/>
+        <result property="maxScore" column="maxScore"/>
+        <result property="avgScore" column="avgScore"/>
+    </resultMap>
+
+    <resultMap id="answerISMap" type="java.util.Map">
+        <result property="homeworkId" column="homework_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="bNum" column="b_num"/>
+        <result property="sNum" column="s_num"/>
+        <result property="scoreRate" column="scoreRate"/>
+        <result property="type" column="type"/>
+    </resultMap>
+
+    <resultMap id="stuScoreRankMap" type="java.util.Map">
+        <result property="rank" column="rank"/>
+        <result property="stuId" column="stu_id"/>
+        <result property="timeKeep" column="time_keep"/>
+        <result property="objectiveItem" column="objectiveItem"/>
+        <result property="subjectiveItem" column="subjectiveItem"/>
+        <result property="totalPoint" column="totalPoint"/>
+    </resultMap>
+
+
+    <select id="queryCount4Map" resultType="int">
+        select count(*) from stu_topic s
+        left join homework h on h.id = s.homework_id
+        <where>
+            <if test="collect !=null and collect !=''">
+                and s.collect = #{collect}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                and s.stu_id = #{stuId}
+            </if>
+            <if test="excellent !=null and excellent !=''">
+                and s.excellent = #{excellent}
+            </if>
+            <if test="tchId !=null and tchId !=''">
+                and h.tch_id = #{tchId}
+            </if>
+            <if test="classId !=null and classId !=''">
+                and s.class_id = #{classId}
+            </if>
+            <if test="releaseTimeStart !=null and releaseTimeStart !=''">
+                and h.release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd !=null and releaseTimeEnd !=''">
+                and h.release_time &lt;= #{releaseTimeEnd}
+            </if>
+
+        </where>
+
+    </select>
+    <select id="queryCountByGroup4Map" resultMap="countMap">
+        select count(*) aCount, s_num from stu_topic
+        <where>
+            <if test="stuTopicClusterId != null and stuTopicClusterId !=''">
+                and stu_topic_cluster_id = #{stuTopicClusterId}
+            </if>
+            <if test="classId != null and classId !=''">
+                and class_id = #{classId}
+            </if>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="stuId != null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+            <if test="type != null and type !=''">
+                and `type` = #{type}
+            </if>
+            <if test="revisal != null and revisal !=''">
+                and revisal = #{revisal}
+            </if>
+            <if test="mark != null and mark !=''">
+                and mark = #{mark}
+            </if>
+        </where>
+        <choose>
+            <when test="bNum != null and bNum != ''">
+                GROUP by b_num
+            </when>
+        </choose>
+        order by aCount desc
+    </select>
+    <select id="queryCount4Group" resultType="com.lhh.modules.topic.domain.TopicVo">
+        select count(*) aCount, s_num from stu_topic
+        <where>
+            <if test="stuTopicClusterId != null and stuTopicClusterId !=''">
+                and stu_topic_cluster_id = #{stuTopicClusterId}
+            </if>
+            <if test="classId != null and classId !=''">
+                and class_id = #{classId}
+            </if>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="stuId != null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+            <if test="type != null and type !=''">
+                and `type` = #{type}
+            </if>
+            <if test="revisal != null and revisal !=''">
+                and revisal = #{revisal}
+            </if>
+            <if test="mark != null and mark !=''">
+                and mark = #{mark}
+            </if>
+
+        </where>
+        <choose>
+            <when test="bNum != null and bNum != ''">
+                GROUP by b_num +0
+            </when>
+        </choose>
+        order by aCount desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+
+    </select>
+    <select id="queryTotalByMap" resultMap="totalMap">
+        select count(*) from stu_topic
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="classId != null and classId !=''">
+                and class_id = #{classId}
+            </if>
+            <if test="stuId != null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+            <if test="stuTopicClusterId != null and stuTopicClusterId !=''">
+                and stu_topic_cluster_id = #{stuTopicClusterId}
+            </if>
+            <if test="type != null and type !=''">
+                and `type` = #{type}
+            </if>
+            <if test="revisal != null and revisal !=''">
+                and revisal = #{revisal}
+            </if>
+
+        </where>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+
+    </select>
+
+
+    <delete id="delete4Map" parameterType="java.util.Map">
+        delete from stu_topic
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+        </where>
+    </delete>
+
+    <insert id="batchSave" parameterType="java.util.List">
+        insert into stu_topic
+        (
+        `homework_id`,
+        `class_id`,
+        `stu_id`,
+        `stu_topic_cluster_id`,
+        `type`,
+        `b_num`,
+        `b_score`,
+        `s_num`,
+        `s_score`,
+        `submit_content`,
+        `submit_answer`,
+        `revisal`,
+        `revisal_content`,
+        `mark`,
+        `actual_score`,
+        `excellent`,
+        `collect`,
+        `tch_id`,
+        `question_id`
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.homeworkId},
+            #{item.classId},
+            #{item.stuId},
+            #{item.stuTopicClusterId},
+            #{item.type},
+            #{item.bNum},
+            #{item.bScore},
+            #{item.sNum},
+            #{item.sScore},
+            #{item.submitContent},
+            #{item.submitAnswer},
+            #{item.revisal},
+            #{item.revisalContent},
+            #{item.mark},
+            #{item.actualScore},
+            #{item.excellent},
+            #{item.collect},
+            #{item.tchId},
+            #{item.questionId}
+            )
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update stu_topic
+            <set>
+                <if test="item.homeworkId != null">`homework_id` = #{item.homeworkId},</if>
+                <if test="item.classId != null">`class_id` = #{item.classId},</if>
+                <if test="item.stuId != null">`stu_id` = #{item.stuId},</if>
+                <if test="item.stuTopicClusterId != null">`stu_topic_cluster_id` = #{item.stuTopicClusterId},</if>
+                <if test="item.type != null">`type` = #{item.type},</if>
+                <if test="item.bNum != null">`b_num` = #{item.bNum},</if>
+                <if test="item.bScore != null">`b_score` = #{item.bScore},</if>
+                <if test="item.sNum != null">`s_num` = #{item.sNum},</if>
+                <if test="item.sScore != null">`s_score` = #{item.sScore},</if>
+                <if test="item.submitContent != null">`submit_content` = #{item.submitContent},</if>
+                <if test="item.submitAnswer != null">`submit_answer` = #{item.submitAnswer},</if>
+                <if test="item.revisal != null">`revisal` = #{item.revisal},</if>
+                <if test="item.revisalContent != null">`revisal_content` = #{item.revisalContent},</if>
+                <if test="item.mark != null">`mark` = #{item.mark},</if>
+                <if test="item.actualScore != null">`actual_score` = #{item.actualScore},</if>
+                <if test="item.excellent != null">`excellent` = #{item.excellent},</if>
+                <if test="item.collect != null">`collect` = #{item.collect},</if>
+                <if test="item.tchId != null">`tch_id` = #{item.tchId},</if>
+                <if test="item.questionId != null">`question_id` = #{item.questionId}</if>
+            </set>
+            where b_num = #{item.bNum} AND s_num = #{item.sNum}
+        </foreach>
+    </update>
+
+    <select id="queryList4Vo" resultType="com.lhh.modules.stutopic.domain.StuTopicVo">
+        select * from stu_topic
+        <where>
+            <if test="homeworkId !=null and homeworkId !=''">
+                and homework_id = #{homeworkId}
+            </if>
+            <if test="bNum !=null and  bNum !=''">
+                and b_num = #{bNum}
+            </if>
+            <if test="sNum !=null and  sNum !=''">
+                and s_num = #{sNum}
+            </if>
+            <if test="stuId !=null and stuId !=''">
+                and stu_id = #{stuId}
+            </if>
+            <if test="classId !=null and  classId !=''">
+                and class_id = #{classId}
+            </if>
+            <if test="stuTopicClusterId !=null and  stuTopicClusterId !=''">
+                and stu_topic_cluster_id = #{stuTopicClusterId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx}+0 ${order}
+            </when>
+            <otherwise>
+                order by id asc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    <select id="queryRank4Map" resultMap="rankMap">
+        select @r:=@r+1 as rank,m.* from (select @r:=0) b,
+        (select t.stu_id,SUM(t.actual_score) as total_points, t.class_id
+        from stu_topic t
+        left join stu_homework h on h.homework_id=t.homework_id and h.stu_id = t.stu_id
+        where t.class_id = #{classId}
+        <if test="submitTimeStart != null and submitTimeStart !=''">
+            and h.submit_time &gt;= #{submitTimeStart}
+        </if>
+        and h.submit_time &gt;= #{submitTimeStart}
+        <if test="submitTimeEnd != null and submitTimeEnd != ''">
+            AND h.submit_time &lt;= #{submitTimeEnd}
+        </if>
+        group by t.stu_id
+        order by total_points desc,t.stu_id asc) m
+    </select>
+    <!-- 作业分析 满分 平均分 最高分  最低分 统计 -->
+    <select id="queryScore4Homework" resultMap="scoreCountMap">
+		select sum(fullMark) as fullMark, sum(minScore) as minScore, sum(maxScore) as maxScore, sum(avgScore) as avgScore from(
+			select convert(avg(s_score),decimal(11, 1)) as fullMark, 0 as minScore, 0 as maxScore,0 as avgScore
+			from(
+				select sum(s_score) as s_score
+				from stu_topic
+				where class_id =  #{classId}
+				and homework_id = #{homeworkId}
+				group by stu_id
+			) tmp
+			union
+			select 0 as fullMark, min(tmp.actual_score) as minScore, 0 as maxScore,0 as avgScore
+			from(
+				select sum(actual_score) as actual_score
+				from stu_topic
+				where class_id =  #{classId}
+				and homework_id = #{homeworkId}
+				group by stu_id
+			) tmp
+			union
+			select 0 as fullMark, 0 as minScore, max(actual_score) as maxScore,0 as avgScore
+			from(
+				select sum(actual_score) as actual_score
+				from stu_topic
+				where class_id =  #{classId}
+				and homework_id = #{homeworkId}
+				group by stu_id
+			) tmp
+			union
+			select 0 as fullMark, 0 as minScore, 0 as maxScore,convert(avg(actual_score),decimal(11, 1)) as avgScore
+			from(
+				select sum(actual_score) as actual_score
+				from stu_topic
+				where class_id =  #{classId}
+				and homework_id = #{homeworkId}
+				group by stu_id
+			) tmp
+		)a
+	</select>
+    <select id="queryScoring" resultMap="rankMap">
+        select format(sum(actual_score)/sum(s_score),1) score_ratio, sum(actual_score)as actual_score, stu_id from stu_topic
+        where homework_id = #{homeworkId}
+        and class_id = #{classId}
+        <if test="typeList !=null and typeList.size>0">
+            and `type` in
+            (
+            <foreach collection="typeList" item="item" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        GROUP BY stu_id
+    </select>
+    <!-- 教师端 作业分析 -> 掌握情况 -> 成绩排名 -->
+    <select id="queryStuScoreRank" resultMap="stuScoreRankMap">
+        select @r:=@r+1 as rank, tmp.stu_id,h.time_keep as time_keep, sum(tmp.objectiveItem) as objectiveItem,
+        sum(tmp.subjectiveItem) as subjectiveItem, (tmp.objectiveItem+tmp.subjectiveItem) as totalPoint
+        from (
+        select s.stu_id, s.homework_id, sum(s.actual_score) as objectiveItem, 0 as subjectiveItem
+        from stu_topic s,(select @r:=0) b
+        where homework_id = #{homeworkId}
+        <if test="classId !=null and classId !=''">
+            and class_id = #{classId}
+        </if>
+        <if test="stuId !=null and stuId !=''">
+            and stu_id = #{stuId}
+        </if>
+        and `type` in
+        <foreach collection="objectiveItemList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        group by stu_id
+        union
+        select s.stu_id, s.homework_id, 0 as objectiveItem, sum(s.actual_score) as subjectiveItem
+        from stu_topic s
+        where homework_id = #{homeworkId}
+        <if test="classId !=null and classId !=''">
+            and class_id = #{classId}
+        </if>
+        <if test="stuId !=null and stuId !=''">
+            and stu_id = #{stuId}
+        </if>
+        and `type` in
+        <foreach collection="subjectiveItemList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        group by stu_id
+        ) tmp
+        left join stu_homework h
+        on h.homework_id = tmp.homework_id
+        and h.stu_id = tmp.stu_id
+        group by stu_id
+        order by rank asc
+    </select>
+    <!-- 作业分析 -掌握情况 -答题情况 -->
+    <select id="queryAnswerIS" resultType="com.lhh.modules.topic.domain.TopicVo">
+		select s.homework_id, s.class_id, s.b_num, s.s_num,s.type,s.id, concat(round(sum(s.actual_score)*100/sum(s.s_score), 1),'%') as scoreRate
+		from stu_topic s
+		where homework_id = #{homeworkId}
+		and class_id = #{classId}
+		GROUP BY s_num
+		order by b_num,s_num asc
+	</select>
+    <!-- 班级错题本 -->
+    <select id="correctAndErrorCount" resultType="com.lhh.modules.stutopic.domain.CorrectAndErrorCount">
+        SELECT
+        "correct" AS state,
+        count( * ) AS count
+        FROM
+        stu_topic
+        <where>
+            <if test=" bNum !=null and bNum !=''">
+                AND b_num = #{bNum}
+            </if>
+            <if test=" sNum !=null and sNum !=''">
+                AND s_num = #{sNum}
+            </if>
+            <if test="classId !=null and classId !=''">
+                AND class_id = #{classId}
+            </if>
+            AND @s_score := actual_score
+        </where>
+        UNION
+        SELECT
+        "error" AS state,
+        count( * ) AS count
+        FROM
+        stu_topic
+        <where>
+            <if test="bNum !=null and bNum !=''">
+                AND b_num = #{bNum}
+            </if>
+            <if test="sNum !=null and sNum !=''">
+                AND s_num = #{sNum}
+            </if>
+            <if test="classId !=null and classId !=''">
+                AND class_id = #{classId}
+            </if>
+            AND @s_score := ! actual_score
+        </where>
+    </select>
+
+    <select id="wyStatistics" resultType="com.lhh.modules.stutopic.domain.WYStatistics">
+      SELECT
+            tmp.b_num,tmp.s_num,SUM( tmp.y ) AS correct,SUM( tmp.w ) AS unCorrect
+            FROM
+            	(
+                    SELECT
+                    	b_num,s_num,SUM( 1 ) AS y,0 AS 'w'
+                    FROM
+                    	stu_topic
+                    <where>
+                        b_num = #{bNum}
+                        AND homework_id = #{homeworkId}
+                        and class_id =#{classId}
+                        AND mark = "1"
+                    </where>
+
+                    GROUP BY
+            	       s_num
+            	     UNION
+                    SELECT
+                    	b_num,s_num,0 AS 'y',SUM( 1 ) AS w
+                    FROM
+                    	stu_topic
+                    <where>
+                        b_num = #{bNum}
+                        AND homework_id = #{homeworkId}
+                        and class_id =#{classId}
+                        AND mark = "0"
+                    </where>
+                    GROUP BY s_num
+            	) tmp
+            GROUP BY
+            	tmp.b_num,tmp.s_num
+    </select>
+    <select id="wyStatisticsRevisal" resultType="com.lhh.modules.stutopic.domain.WYStatistics">
+        SELECT
+        tmp.b_num,tmp.s_num,SUM( tmp.tchRevising ) AS tchRevising,SUM( tmp.stuRevisinged ) AS stuRevisinged
+        FROM
+        (
+        SELECT
+        b_num,s_num,SUM( 1 ) AS tchRevising,0 AS 'stuRevisinged'
+        FROM
+        stu_topic
+        <where>
+            b_num = #{bNum}
+            AND homework_id = #{homeworkId}
+            and class_id = #{classId}
+            AND revisal = "1"
+        </where>
+        GROUP BY
+        s_num
+        UNION
+        SELECT
+        b_num,s_num,0 AS 'stuRevisinged',SUM( 1 ) AS tchRevising
+        FROM
+        stu_topic
+        <where>
+            b_num = #{bNum}
+            AND homework_id = #{homeworkId}
+            and class_id = #{classId}
+            AND revisal = 1 or revisal = 2
+        </where>
+        GROUP BY s_num
+        ) tmp
+        GROUP BY
+        tmp.b_num,tmp.s_num
+    </select>
+
+
+</mapper>

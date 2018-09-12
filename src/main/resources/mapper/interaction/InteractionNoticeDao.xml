@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.interaction.dao.InteractionNoticeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.interaction.entity.InteractionNoticeEntity" id="interactionNoticeMap">
+        <result property="noticeId" column="notice_id"/>
+        <result property="tchId" column="tch_id"/>
+        <result property="classIds" column="class_ids"/>
+        <result property="content" column="content"/>
+        <result property="audioPath" column="audio_path"/>
+        <result property="picsPath" column="pics_path"/>
+        <result property="commentYn" column="comment_yn"/>
+        <result property="pushTime" column="push_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="deleteYn" column="delete_yn"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.interaction.entity.InteractionNoticeEntity">
+		select * from interaction_notice where notice_id = #{value}
+	</select>
+	<select id="queryTchList" resultType="com.lhh.modules.interaction.domain.NoticeListVo">
+		SELECT
+			a.*,
+		    CONCAT('[',GROUP_CONCAT(classY.class),']')readY,
+            CONCAT('[',GROUP_CONCAT(classN.class),']')readN
+		FROM
+			interaction_notice a
+			LEFT JOIN
+			(SELECT
+				CONCAT('{"class_id":"',class_id,'";"stuIds":[',GROUP_CONCAT(CONCAT('"',stu_id,'"')),']}') AS  class,
+				notice_id
+			FROM
+				interaction_stu_notice 
+			WHERE read_yn = 'Y'
+			GROUP BY notice_id, class_id
+			)AS classY 
+			ON a.notice_id  = classY.notice_id
+			LEFT JOIN
+			(SELECT
+				CONCAT('{"class_id":"',class_id,'";"stuIds":[',GROUP_CONCAT(CONCAT('"',stu_id,'"')),']}') AS  class,
+				notice_id
+			FROM
+			interaction_stu_notice 
+			WHERE read_yn = 'N'
+			GROUP BY notice_id, class_id
+			)AS classN 
+			ON a.notice_id  = classN.notice_id
+		WHERE
+		    a.tch_id = #{tchId} and delete_yn ='N'
+		GROUP BY
+			a.notice_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by notice_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.interaction.entity.InteractionNoticeEntity">
+		select * from interaction_notice where tch_id = #{tchId} and delete_yn ='N'
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by notice_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from interaction_notice where tch_id = #{tchId} and delete_yn ='N'
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.interaction.entity.InteractionNoticeEntity" useGeneratedKeys="true" keyProperty="noticeId">
+		insert into interaction_notice
+		(
+			`tch_id`, 
+			`class_ids`, 
+			`content`, 
+			`audio_path`, 
+			`pics_path`, 
+			`comment_yn`, 
+			`push_time`, 
+			`create_time`, 
+			`delete_yn`
+		)
+		values
+		(
+			#{tchId}, 
+			#{classIds}, 
+			#{content}, 
+			#{audioPath}, 
+			#{picsPath}, 
+			#{commentYn}, 
+			#{pushTime}, 
+			#{createTime}, 
+			#{deleteYn}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.interaction.entity.InteractionNoticeEntity">
+		update interaction_notice 
+		<set>
+			<if test="content != null and content != ''">`content` = #{content}, </if>
+			<if test="commentYn != null and commentYn != ''">`comment_yn` = #{commentYn}, </if>
+			<if test="pushTime != null ">`push_time` = #{pushTime}, </if>
+			<if test="deleteYn != null and deleteYn != ''">`delete_yn` = #{deleteYn}</if>
+		</set>
+		where notice_id = #{noticeId}
+	</update>
+	
+	<delete id="delete">
+		delete from interaction_notice where notice_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from interaction_notice where notice_id in 
+		<foreach item="noticeId" collection="array" open="(" separator="," close=")">
+			#{noticeId}
+		</foreach>
+	</delete>
+
+</mapper>

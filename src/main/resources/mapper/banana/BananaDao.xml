@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.banana.dao.BananaDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.banana.entity.BananaEntity" id="bananaMap">
+        <result property="id" column="id"/>
+        <result property="url" column="url"/>
+        <result property="state" column="state"/>
+        <result property="title" column="title"/>
+        <result property="connect" column="connect"/>
+        <result property="client" column="client"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="content" column="content"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.banana.entity.BananaEntity">
+		select * from banana where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.banana.entity.BananaEntity">
+		select * from banana
+		<where>
+			<if test="id != null and id !=''">
+				and id =#{id}
+			</if>
+			<if test="url != null and url !=''">
+				and url like cancat ('%',#{url},'%')
+			</if>
+			<if test="state != null and state !=''">
+				and `state` =#{state}
+			</if>
+			<if test="title != null and title !=''">
+				and title like cancat ('%',#{title},'%')
+			</if>
+			<if test="client != null and client !=''">
+				and client =#{client}
+			</if>
+			<if test="createTimeStart !=null and createTimeStart != ''">
+				and create_time &gt;= #{createTimeStart}
+			</if>
+			<if test="createTimeEnd !=null and createTimeEnd != ''">
+				and create_time &lt;= #{createTimeStart}
+			</if>
+			<if test="updateTimeStart != null and updateTimeStart !=''">
+				and update_time &gt;=#{updateTimeStart}
+			</if>
+			<if test="updateTimeEnd != null and updateTimeEnd !=''">
+				and update_time &lt;=#{updateTimeEnd}
+			</if>
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from banana 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.banana.entity.BananaEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into banana
+		(
+			`url`, 
+			`state`, 
+			`title`, 
+			`connect`,
+			`client`,
+			`create_time`, 
+			`update_time`,
+			`content`
+		)
+		values
+		(
+			#{url}, 
+			#{state}, 
+			#{title}, 
+			#{connect},
+			#{client},
+			#{createTime}, 
+			#{updateTime},
+			#{content}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.banana.entity.BananaEntity">
+		update banana 
+		<set>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="connect != null">`connect` = #{connect}, </if>
+			<if test="client != null">`client` = #{client}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="updateTime != null">`update_time` = #{updateTime},</if>
+			<if test="content != null">`content` = #{content}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from banana where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from banana where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

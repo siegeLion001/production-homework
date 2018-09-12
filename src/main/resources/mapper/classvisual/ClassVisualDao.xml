@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classvisual.dao.ClassVisualDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.classvisual.entity.ClassVisualEntity" id="classVisualMap">
+        <result property="id" column="id"/>
+        <result property="topId" column="top_id"/>
+        <result property="authId" column="auth_id"/>
+        <result property="lookOver" column="look_over"/>
+        <result property="targetId" column="target_id"/>
+        <result property="targetClassId" column="target_class_id"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.classvisual.entity.ClassVisualEntity">
+		select * from class_visual where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.classvisual.entity.ClassVisualEntity">
+		select * from class_visual
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from class_visual 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.classvisual.entity.ClassVisualEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into class_visual
+		(
+			`top_id`, 
+			`auth_id`, 
+			`look_over`, 
+			`target_id`, 
+			`target_class_id`
+		)
+		values
+		(
+			#{topId}, 
+			#{authId}, 
+			#{lookOver}, 
+			#{targetId}, 
+			#{targetClassId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.classvisual.entity.ClassVisualEntity">
+		update class_visual 
+		<set>
+			<if test="topId != null">`top_id` = #{topId}, </if>
+			<if test="authId != null">`auth_id` = #{authId}, </if>
+			<if test="lookOver != null">`look_over` = #{lookOver}, </if>
+			<if test="targetId != null">`target_id` = #{targetId}, </if>
+			<if test="targetClassId != null">`target_class_id` = #{targetClassId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from class_visual where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from class_visual where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

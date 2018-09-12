@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.interaction.dao.InteractionNoticeCommentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.interaction.entity.InteractionNoticeCommentEntity" id="interactionNoticeCommentMap">
+        <result property="commentId" column="comment_id"/>
+        <result property="noticeId" column="notice_id"/>
+        <result property="content" column="content"/>
+        <result property="audioPath" column="audio_path"/>
+        <result property="picsPath" column="pics_path"/>
+        <result property="videoPath" column="video_path"/>
+        <result property="createTime" column="create_time"/>
+        <result property="deleteYn" column="delete_yn"/>
+        <result property="commentator" column="commentator"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.interaction.entity.InteractionNoticeCommentEntity">
+		select * from interaction_notice_comment where comment_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.interaction.entity.InteractionNoticeCommentEntity">
+		select * from interaction_notice_comment
+		where 1=1
+		<if test="commentator != null and commentator != ''">
+		    and commentator = #{commentator}
+		</if>
+		<if test="noticeId != null and noticeId != ''">
+		    and notice_id = #{noticeId}
+		</if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by comment_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from interaction_notice_comment 
+		where 1=1 
+		<if test="commentator != null and commentator != ''">
+		    and commentator = #{commentator}
+		</if>
+		<if test="noticeId != null and noticeId != ''">
+		    and notice_id = #{noticeId}
+		</if>
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.interaction.entity.InteractionNoticeCommentEntity" useGeneratedKeys="true" keyProperty="commentId">
+		insert into interaction_notice_comment
+		(
+			`notice_id`, 
+			`content`, 
+			`audio_path`, 
+			`pics_path`, 
+			`video_path`, 
+			`create_time`, 
+			`delete_yn`,
+			`commentator`
+		)
+		values
+		(
+			#{noticeId}, 
+			#{content}, 
+			#{audioPath}, 
+			#{picsPath}, 
+			#{videoPath}, 
+			#{createTime}, 
+			#{deleteYn},
+			#{commentator}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.interaction.entity.InteractionNoticeCommentEntity">
+		update interaction_notice_comment 
+		<set>
+			<if test="noticeId != null">`notice_id` = #{noticeId}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="audioPath != null">`audio_path` = #{audioPath}, </if>
+			<if test="picsPath != null">`pics_path` = #{picsPath}, </if>
+			<if test="videoPath != null">`video_path` = #{videoPath}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="deleteYn != null">`delete_yn` = #{deleteYn}</if>
+		</set>
+		where comment_id = #{commentId}
+	</update>
+	
+	<delete id="delete">
+		delete from interaction_notice_comment where comment_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from interaction_notice_comment where comment_id in 
+		<foreach item="commentId" collection="array" open="(" separator="," close=")">
+			#{commentId}
+		</foreach>
+	</delete>
+
+</mapper>

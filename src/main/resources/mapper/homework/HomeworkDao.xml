@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.homework.dao.HomeworkDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.homework.entity.HomeworkEntity" id="homeworkMap">
+		<result property="id" column="id"/>
+		<result property="tchId" column="tch_id"/>
+		<result property="classIds" column="class_ids"/>
+		<result property="subject" column="subject"/>
+		<result property="period" column="period"/>
+		<result property="book" column="book"/>
+		<result property="type" column="type"/>
+		<result property="title" column="title"/>
+		<result property="remark" column="remark"/>
+		<result property="content" column="content"/>
+		<result property="answerCard" column="answer_card"/>
+		<result property="finishTime" column="finish_time"/>
+		<result property="releaseTime" column="release_time"/>
+		<result property="publishTime" column="publish_time"/>
+		<result property="createTime" column="create_time"/>
+		<result property="state" column="state"/>
+		<result property="answerImgs" column="answer_imgs"/>
+		<result property="delMark" column="del_mark"/>
+		<result property="readContent" column="read_content"/>
+		<result property="tinyType" column="tiny_type"/>
+		<result property="correctType" column="correct_type"/>
+		<result property="draftsYn" column="drafts_yn"/>
+		<result property="subjectId" column="subject_id"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.homework.entity.HomeworkEntity">
+		select * from homework where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.homework.entity.HomeworkEntity">
+		select * from homework
+        <where>
+			<choose>
+				<when test="draftsYn != null and draftsYn.trim() != ''">
+					`drafts_yn` =#{draftsYn}
+				</when>
+				<otherwise>
+					(drafts_yn IS NULL OR  drafts_yn != 'Y')
+				</otherwise>
+			</choose>
+
+            <if test=" tchId !=null and tchId !=''">
+                and tch_id =#{tchId}
+            </if>
+			<if test=" title !=null and title !=''">
+                and title like concat("%",#{title},"%")
+            </if>
+            <if test=" subject !=null and subject !=''">
+                and subject =#{subject}
+            </if>
+            <if test=" period !=null and period !=''">
+                and period =#{period}
+            </if>
+			<if test="state != null and state !=''">
+				and state = #{state}
+			</if>
+            <if test=" book !=null and book !=''">
+                and book =#{book}
+            </if>
+            <if test=" type !=null and type !=''">
+                and `type` =#{type}
+            </if>
+			<if test=" delMark !=null and delMark !=''">
+				and `del_mark` =#{delMark}
+			</if>
+            <if test="submitTimeStart != null">
+                AND submit_time &gt;= #{submitTimeStart}
+            </if>
+            <if test="submitTimeEnd != null">
+                AND submit_time &lt;= #{submitTimeEnd}
+            </if>
+            <if test="finishTimeStart != null">
+                AND finish_time &gt;= #{finishTimeStart}
+            </if>
+            <if test="finishTimeEnd != null">
+                AND finish_time &lt;= #{finishTimeEnd}
+            </if>
+            <if test="releaseTimeStart != null">
+                AND release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd != null">
+                AND release_time &lt;= #{releaseTimeEnd}
+            </if>
+            <if test="publishTimeStart != null">
+                AND publish_time &gt;= #{publishTimeStart}
+            </if>
+            <if test="publishTimeEnd != null">
+                AND publish_time &lt;= #{publishTimeEnd}
+            </if>
+            <if test="readContent != null">
+                AND read_content &lt;= #{readContent}
+            </if>
+            <if test="tinyType != null">
+                AND tiny_type &lt;= #{tinyType}
+            </if>
+
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	
+ 	<select id="queryTotal" resultType="int" >
+		select count(*) from homework
+		<where>
+			<choose>
+				<when test="draftsYn != null and draftsYn.trim() != ''">
+					`drafts_yn` =#{draftsYn}
+				</when>
+				<otherwise>
+					(drafts_yn IS NULL OR  drafts_yn != 'Y')
+				</otherwise>
+			</choose>
+			<if test=" tchId !=null and tchId !=''">
+				and tch_id =#{tchId}
+			</if>
+			<if test=" subject !=null and subject !=''">
+				and subject =#{subject}
+			</if>
+			<if test=" period !=null and period !=''">
+				and period =#{period}
+			</if>
+			<if test="state != null and state !=''">
+				and state = #{state}
+			</if>
+			<if test=" book !=null and book !=''">
+				and book =#{book}
+			</if>
+			<if test="delMark !=null and delMark !=''">
+				and `del_mark` =#{delMark}
+			</if>
+			<if test=" type !=null and type !=''">
+				and `type` =#{type}
+			</if>
+			<if test="submitTimeStart != null">
+				AND submit_time &gt;= #{submitTimeStart}
+			</if>
+			<if test="submitTimeEnd != null">
+				AND submit_time &lt;= #{submitTimeEnd}
+			</if>
+			<if test="finishTimeStart != null">
+				AND finish_time &gt;= #{finishTimeStart}
+			</if>
+			<if test="finishTimeEnd != null">
+				AND finish_time &lt;= #{finishTimeEnd}
+			</if>
+			<if test="releaseTimeStart != null">
+				AND release_time &gt;= #{releaseTimeStart}
+			</if>
+			<if test="releaseTimeEnd != null">
+				AND release_time &lt;= #{releaseTimeEnd}
+			</if>
+			<if test="publishTimeStart != null">
+				AND publish_time &gt;= #{publishTimeStart}
+			</if>
+			<if test="publishTimeEnd != null">
+				AND publish_time &lt;= #{publishTimeEnd}
+			</if>
+
+		</where>
+
+	</select>
+
+
+	<insert id="save" parameterType="com.lhh.modules.homework.entity.HomeworkEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into homework
+		(
+			`tch_id`, 
+			`class_ids`,
+			`subject`, 
+			`period`, 
+			`book`, 
+			`type`, 
+			`title`, 
+			`remark`, 
+			`content`, 
+			`answer_card`, 
+			`finish_time`, 
+			`release_time`, 
+			`publish_time`, 
+			`create_time`, 
+			`state`,
+			`answer_imgs`,
+			`del_mark`,
+			`read_content`,
+			`tiny_type`,
+			`correct_type`,
+			`subject_id`
+
+			,`drafts_yn`
+
+		)
+		values
+		(
+			#{tchId}, 
+			#{classIds},
+			#{subject}, 
+			#{period}, 
+			#{book}, 
+			#{type}, 
+			#{title}, 
+			#{remark}, 
+			#{content}, 
+			#{answerCard},
+			#{finishTime}, 
+			#{releaseTime}, 
+			#{publishTime}, 
+			#{createTime}, 
+			#{state},
+			#{answerImgs},
+			#{delMark},
+			#{readContent},
+			#{tinyType},
+			#{correctType},
+			#{subjectId}
+
+			,#{draftsYn}
+
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.homework.entity.HomeworkEntity">
+		update homework 
+		<set>
+			<if test="tchId != null">`tch_id` = #{tchId}, </if>
+			<if test="classIds != null">`class_ids` = #{classIds}, </if>
+			<if test="subject != null">`subject` = #{subject}, </if>
+			<if test="period != null">`period` = #{period}, </if>
+			<if test="book != null">`book` = #{book}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="remark != null">`remark` = #{remark}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="answerCard != null">`answer_card` = #{answerCard}, </if>
+			<if test="finishTime != null">`finish_time` = #{finishTime}, </if>
+			<if test="releaseTime != null">`release_time` = #{releaseTime}, </if>
+			<if test="publishTime != null">`publish_time` = #{publishTime}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="state != null">`state` = #{state},</if>
+			<if test="answerImgs != null">`answer_imgs` = #{answerImgs},</if>
+			<if test="delMark != null">`del_mark` = #{delMark},</if>
+			<if test="readContent != null">`read_content` = #{readContent},</if>
+			<if test="tinyType != null">`tiny_type` = #{tinyType},</if>
+			<if test="correctType != null">`correct_type` = #{correctType},</if>
+			<if test="subjectId != null">`subject_id` = #{subjectId},</if>
+			<if test="draftsYn != null">`drafts_yn` = #{draftsYn}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from homework where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from homework where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+<!-- 草稿箱列表 -->
+	<select id="draftsList" resultType="com.lhh.modules.homework.entity.HomeworkEntity" parameterType="Map">
+		select * from homework
+        <where>
+            drafts_yn = 'Y'
+            <if test=" tchId !=null and tchId !=''">
+                and tch_id =#{tchId}
+            </if>
+			<if test=" title !=null and title !=''">
+                and title like concat("%",#{title},"%")
+            </if>
+            <if test=" subject !=null and subject !=''">
+                and subject =#{subject}
+            </if>
+            <if test=" period !=null and period !=''">
+                and period =#{period}
+            </if>
+			<if test="state != null and state !=''">
+				and state = #{state}
+			</if>
+            <if test=" book !=null and book !=''">
+                and book =#{book}
+            </if>
+            <if test=" type !=null and type !=''">
+                and `type` =#{type}
+            </if>
+			<if test=" delMark !=null and delMark !=''">
+				and `del_mark` =#{delMark}
+			</if>
+            <if test="submitTimeStart != null and submitTimeStart != ''">
+                AND submit_time &gt;= #{submitTimeStart}
+            </if>
+            <if test="submitTimeEnd != null and submitTimeEnd != ''">
+                AND submit_time &lt;= #{submitTimeEnd}
+            </if>
+            <if test="finishTimeStart != null and finishTimeStart != ''">
+                AND finish_time &gt;= #{finishTimeStart}
+            </if>
+            <if test="finishTimeEnd != null and finishTimeEnd != ''">
+                AND finish_time &lt;= #{finishTimeEnd}
+            </if>
+            <if test="releaseTimeStart != null and releaseTimeStart != ''">
+                AND release_time &gt;= #{releaseTimeStart}
+            </if>
+            <if test="releaseTimeEnd != null and releaseTimeEnd != ''">
+                AND release_time &lt;= #{releaseTimeEnd}
+            </if>
+            <if test="publishTimeStart != null and publishTimeStart != ''">
+                AND publish_time &gt;= #{publishTimeStart}
+            </if>
+            <if test="publishTimeEnd != null and publishTimeEnd != ''">
+                AND publish_time &lt;= #{publishTimeEnd}
+            </if>
+            <if test="readContent != null">
+                AND read_content &lt;= #{readContent}
+            </if>
+            <if test="tinyType != null">
+                AND tiny_type &lt;= #{tinyType}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+</mapper>

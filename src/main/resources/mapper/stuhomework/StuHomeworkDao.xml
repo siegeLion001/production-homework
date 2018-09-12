@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.stuhomework.dao.StuHomeworkDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.stuhomework.entity.StuHomeworkEntity" id="stuHomeworkMap">
+		<result property="id" column="id"/>
+		<result property="homeworkId" column="homework_id"/>
+		<result property="classId" column="class_id"/>
+		<result property="stuId" column="stu_id"/>
+		<result property="stuMacroStatus" column="stu_macro_status"/>
+		<result property="tchMacroStatus" column="tch_macro_status"/>
+		<result property="stuState" column="stu_state"/>
+		<result property="tchState" column="tch_state"/>
+		<result property="submitTime" column="submit_time"/>
+		<result property="backReason" column="back_reason"/>
+		<result property="timeKeep" column="time_keep"/>
+        <result property="evaluate" column="evaluate"/>
+        <result property="actualScore" column="actual_score"/>
+        <result property="analysis" column="analysis"/>
+        <result property="record" column="record"/>
+		<result property="reviewerId" column="reviewer_id"/>
+		<result property="evaluationer" column="evaluationer"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.stuhomework.entity.StuHomeworkEntity">
+		select * from stu_homework where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.stuhomework.entity.StuHomeworkEntity">
+		select * from stu_homework
+		<where>
+			<if test="stuState !=null and stuState !=''">
+				and stu_state = #{stuState}
+			</if>
+			<if test="stuMacroStatus !=null and stuMacroStatus !=''">
+				and stu_macro_status = #{stuMacroStatus}
+			</if>
+			<if test="homeworkId !=null and homeworkId !=''">
+				and homework_id = #{homeworkId}
+			</if>
+			<if test="classId !=null and classId !=''">
+				and class_id = #{classId}
+			</if>
+			<if test="stuId !=null and stuId !=''">
+				and stu_id = #{stuId}
+			</if>
+			<if test="bNum !=null and bNum !=''">
+				and b_num = #{bNum}
+			</if>
+			<if test="sNum !=null and sNum !=''">
+				and s_num = #{sNum}
+			</if>
+            <if test="reviewerId !=null and reviewerId !=''">
+                and reviewer_id = #{reviewerId}
+            </if>
+		</where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from stu_homework
+		<where>
+			<if test="homeworkId !=null and homeworkId != ''">
+				and homework_id = #{homeworkId}
+			</if>
+			<if test="classId !=null and classId != ''">
+				and class_id =#{classId}
+			</if>
+			<if test="stuMacroStatus !=null and stuMacroStatus != ''">
+				and stu_macro_status = #{stuMacroStatus}
+			</if>
+			<if test="tchMacroStatus !=null and tchMacroStatus != ''">
+				and tch_macro_status = #{tchMacroStatus}
+			</if>
+			<if test="tchStatus !=null and tchStatus != ''">
+				and tch_state = #{tchStatus}
+			</if>
+			<if test="stuStatus !=null and stuStatus != ''">
+				and stuState = #{stuStatus}
+			</if>
+			<if test="stuId !=null and stuId !=''">
+				and stu_id = #{stuId}
+			</if>
+            <if test="reviewerId !=null and reviewerId !=''">
+                and reviewer_id = #{reviewerId}
+            </if>
+		</where>
+	</select>
+
+	<insert id="save" parameterType="com.lhh.modules.stuhomework.entity.StuHomeworkEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into stu_homework
+		(
+			`homework_id`,
+			`class_id`,
+			`stu_id`,
+			`stu_macro_status`,
+			`tch_macro_status`,
+			`stu_state`,
+			`tch_state`,
+			`submit_time`,
+			`back_reason`,
+			`time_keep`,
+			`evaluate`,
+			`actual_score`,
+			`analysis`,
+			`record`,
+			`reviewer_id`,
+			`evaluationer`
+		)
+		values
+		(
+			#{homeworkId},
+			#{classId},
+			#{stuId},
+			#{stuMacroStatus},
+			#{tchMacroStatus},
+			#{stuState},
+			#{tchState},
+			#{submitTime},
+			#{backReason},
+			#{timeKeep},
+			#{evaluate},
+			#{actualScore},
+			#{analysis},
+			#{record},
+			#{reviewerId},
+			#{evaluationer}
+		)
+	</insert>
+
+	<update id="update" parameterType="com.lhh.modules.stuhomework.entity.StuHomeworkEntity">
+		update stu_homework
+		<set>
+			<if test="homeworkId != null">`homework_id` = #{homeworkId}, </if>
+			<if test="classId != null">`class_id` = #{classId}, </if>
+			<if test="stuId != null">`stu_id` = #{stuId}, </if>
+			<if test="stuMacroStatus != null">`stu_macro_status` = #{stuMacroStatus}, </if>
+			<if test="tchMacroStatus != null">`tch_macro_status` = #{tchMacroStatus}, </if>
+			<if test="stuState != null">`stu_state` = #{stuState}, </if>
+			<if test="tchState != null">`tch_state` = #{tchState}, </if>
+			<if test="submitTime != null">`submit_time` = #{submitTime}, </if>
+            <if test="backReason != null">`back_reason` = #{backReason},</if>
+            <if test="timeKeep != null">`time_keep` = #{timeKeep},</if>
+            <if test="evaluate != null">`evaluate` = #{evaluate},</if>
+            <if test="actualScore != null">`actual_score` = #{actualScore},</if>
+            <if test="analysis != null">`analysis` = #{analysis},</if>
+            <if test="record != null">`record` = #{record},</if>
+			<if test="reviewerId != null">`reviewer_id` = #{reviewerId}, </if>
+			<if test="evaluationer != null">`evaluationer` = #{evaluationer}</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<delete id="delete">
+		delete from stu_homework where id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from stu_homework where id in
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+
+</mapper>

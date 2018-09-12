@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.classtop.dao.ClassTopDao">
+    <resultMap id="informationMap" type="java.util.Map">
+        <result property="dynamicCount" column="dynamicCount"/><!-- 动态数 -->
+        <result property="likedCount" column="likedCount"/>    <!-- 已赞数 -->
+        <result property="praisedCount" column="praisedCount"/><!-- 收到赞 -->
+        <result property="commentCount" column="commentCount"/><!-- 已评 -->
+    </resultMap>
+
+    <select id="queryTopListByTarget" resultType="com.lhh.modules.classtop.entity.vo.ClassTopVo">
+        SELECT
+        DISTINCT
+        class_visual.target_class_id,
+        -- class_visual.target_id,
+        class_top.*
+        FROM
+        class_top
+        INNER JOIN class_visual
+        <where>
+            class_visual.top_id = class_top.id
+            <if test="authType !=null and authType != ''">
+                AND class_top.auth_type = #{authType}
+            </if>
+            <if test="overt !=null and overt != ''">
+                AND class_top.overt = #{overt}
+            </if>
+            <if test="targetId !=null and targetId != ''">
+                AND class_visual.target_id = #{targetId}
+            </if>
+            <if test="targetClassId !=null and targetClassId != ''">
+                AND class_visual.target_class_id = #{targetClassId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryTopTotalByTarget" resultType="int">
+        select count(*) from (
+        SELECT
+        DISTINCT
+        class_visual.target_class_id,
+        -- class_visual.target_id,
+        class_top.*
+        FROM
+        class_top
+        INNER JOIN class_visual
+        <where>
+            class_visual.top_id = class_top.id
+            <if test="authType !=null and authType != ''">
+                AND class_top.auth_type = #{authType}
+            </if>
+            <if test="targetId !=null and targetId != ''">
+                AND class_visual.target_id = #{targetId}
+            </if>
+            <if test="targetClassId !=null and targetClassId != ''">
+                AND class_visual.target_class_id = #{targetClassId}
+            </if>
+        </where>
+        ) tmp
+    </select>
+
+
+    <select id="queryMyList" resultType="com.lhh.modules.classtop.entity.vo.ClassTopVo">
+        select * from class_top
+        <where>
+            <if test="authId !=null and authId != ''">
+                AND class_top.auth_id = #{auth_id}
+            </if>
+            <if test="authType !=null and authType != ''">
+                AND class_top.auth_type = #{authType}
+            </if>
+            <if test="type !=null and type != ''">
+                AND class_top.type = #{type}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryMyTotal" resultType="int">
+        select count(*) from class_top
+        <where>
+            <if test="authId !=null and authId != ''">
+                AND class_top.auth_id = #{auth_id}
+            </if>
+            <if test="authType !=null and authType != ''">
+                AND class_top.auth_type = #{authType}
+            </if>
+            <if test="type !=null and type != ''">
+                AND class_top.type = #{type}
+            </if>
+        </where>
+    </select>
+    <!-- 我的发布统计  动态数 已赞人数 -->
+    <select id="queryInformationCount" resultMap="informationMap">
+        select sum(dynamic) as dynamicCount, sum(liked) as likedCount, sum(praised) as praisedCount, sum(comment_count) as commentCount from(
+            select count(*) as dynamic, 0 as liked, 0 as praised, 0 as comment_count
+            from class_top as top
+            <where>
+                <if test="authId != null and authId !=''">
+                    AND top.auth_id =#{authId}
+                </if>
+            </where>
+            union
+            select 0 as dynamic, count(*) as liked, 0 as praised, 0 as comment_count
+            from class_assist as ass
+            <where>
+                <if test="authId != null and authId !=''">
+                    AND ass.auth_id =#{authId}
+                </if>
+            </where>
+            union
+            select 0 as dynamic, 0 as liked, count(*) as praised, 0 as comment_count
+            from class_assist as ass
+            <where>
+                <if test="authId != null and authId !=''">
+                    AND ass.target_id =#{authId}
+                </if>
+            </where>
+            union
+            select 0 as dynamic, 0 as liked, 0 as praised, count(*) as comment_count
+            from class_comment as comm
+            <where>
+                <if test="authId != null and authId !=''">
+                    AND comm.auth_id =#{authId}
+                </if>
+            </where>
+        ) as tmp
+    </select>
+
+</mapper>

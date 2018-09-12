@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.modules.interaction.dao.InteractionStuNoticeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.modules.interaction.entity.InteractionStuNoticeEntity" id="interactionStuNoticeMap">
+        <result property="stuNoticeId" column="stu_notice_id"/>
+        <result property="noticeId" column="notice_id"/>
+        <result property="stuId" column="stu_id"/>
+        <result property="readYn" column="read_yn"/>
+        <result property="createTime" column="create_time"/>
+        <result property="classId" column="class_id"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.lhh.modules.interaction.entity.InteractionStuNoticeEntity">
+		select * from interaction_stu_notice where stu_notice_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.lhh.modules.interaction.entity.InteractionStuNoticeEntity">
+		select * from interaction_stu_notice
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by stu_notice_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from interaction_stu_notice 
+	</select>
+	 
+	<insert id="save" parameterType="com.lhh.modules.interaction.entity.InteractionStuNoticeEntity" useGeneratedKeys="true" keyProperty="stuNoticeId">
+		insert into interaction_stu_notice
+		(
+			`notice_id`, 
+			`stu_id`, 
+			`read_yn`, 
+			`create_time`,
+			`class_id`
+		)
+		values
+		(
+			#{noticeId}, 
+			#{stuId}, 
+			#{readYn}, 
+			#{createTime},
+			#{classId}
+		)
+	</insert>
+	<insert id="batchSave" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=";">
+		insert into interaction_stu_notice
+		(
+			`notice_id`, 
+			`stu_id`, 
+			`read_yn`, 
+			`create_time`,
+			`class_id`
+		)
+		values
+		(
+			#{item.noticeId}, 
+			#{item.stuId}, 
+			#{item.readYn}, 
+			#{item.createTime},
+			#{item.classId}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.lhh.modules.interaction.entity.InteractionStuNoticeEntity">
+		update interaction_stu_notice 
+		<set>
+			<if test="noticeId != null">`notice_id` = #{noticeId}, </if>
+			<if test="stuId != null">`stu_id` = #{stuId}, </if>
+			<if test="readYn != null">`read_yn` = #{readYn}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}</if>
+		</set>
+		where stu_notice_id = #{stuNoticeId}
+	</update>
+	
+	<delete id="delete">
+		delete from interaction_stu_notice where stu_notice_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from interaction_stu_notice where stu_notice_id in 
+		<foreach item="stuNoticeId" collection="array" open="(" separator="," close=")">
+			#{stuNoticeId}
+		</foreach>
+	</delete>
+
+</mapper>
